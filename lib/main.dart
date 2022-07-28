@@ -1,6 +1,14 @@
+import 'package:android_image_processing/screens/object_detection.dart';
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+List<CameraDescription> cameras = [];
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  cameras = await availableCameras();
+
   runApp(const MyApp());
 }
 
@@ -14,7 +22,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.pink,
       ),
-      home: const HomeScreen(title: 'Flutter Demo Home Page'),
+      home: const HomeScreen(title: 'Android Image Processing'),
     );
   }
 }
@@ -38,9 +46,17 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const <Widget>[
-            Text(
-              'You have pushed the button this many times:',
+          children: <Widget>[
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: ((context) => const ObjectDetectionScreen()),
+                  ),
+                );
+              },
+              child: const Text('Object Detection'),
             ),
           ],
         ),
