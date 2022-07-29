@@ -1,7 +1,7 @@
 import 'dart:io';
 
+import 'package:android_image_processing/screens/display_text_screen.dart';
 import 'package:camera/camera.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_commons/google_mlkit_commons.dart';
 import 'package:image_picker/image_picker.dart';
@@ -11,20 +11,22 @@ import '../main.dart';
 enum ScreenMode { liveFeed, gallery }
 
 class CameraView extends StatefulWidget {
-  const CameraView(
-      {Key? key,
-      required this.customPaint,
-      this.text,
-      required this.onImage,
-      this.onScreenModeChanged,
-      this.initialDirection = CameraLensDirection.back})
-      : super(key: key);
+  const CameraView({
+    Key? key,
+    required this.customPaint,
+    this.text,
+    required this.onImage,
+    this.onScreenModeChanged,
+    required this.painterFeature,
+    this.initialDirection = CameraLensDirection.back,
+  }) : super(key: key);
 
   final CustomPaint? customPaint;
   final String? text;
   final Function(InputImage inputImage) onImage;
   final Function(ScreenMode mode)? onScreenModeChanged;
   final CameraLensDirection initialDirection;
+  final PainterFeature painterFeature;
 
   @override
   _CameraViewState createState() => _CameraViewState();
@@ -102,15 +104,24 @@ class _CameraViewState extends State<CameraView> {
     );
   }
 
-  Widget? _floatingActionButton() {
-    if (_mode == ScreenMode.gallery) return null;
-    if (cameras.length == 1) return null;
-    return SizedBox(
-      height: 80.0,
-      width: 80.0,
-      child: GestureDetector(
-        onTap: _switchLiveCamera,
-        child: CircleAvatar(
+  Future<void> _capturePicture() async {
+    await _controller?.takePicture().then((value) {
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: ((context) => DisplayTextScreen(imagePath: value.path)),
+        ),
+      );
+    });
+  }
+
+  Widget _circleButton() {
+    if (widget.painterFeature == PainterFeature.TextRecognition) {
+      return GestureDetector(
+        onTap: _capturePicture,
+        child: const CircleAvatar(
           backgroundColor: Colors.white,
           child: CircleAvatar(
             radius: 38,
@@ -119,12 +130,28 @@ class _CameraViewState extends State<CameraView> {
               radius: 34,
               backgroundColor: Colors.white,
               foregroundColor: Colors.black87,
-              child: Icon(
-                Platform.isIOS
-                    ? Icons.flip_camera_ios_outlined
-                    : Icons.flip_camera_android_outlined,
-                size: 40,
-              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTap: _switchLiveCamera,
+      child: CircleAvatar(
+        backgroundColor: Colors.white,
+        child: CircleAvatar(
+          radius: 38,
+          backgroundColor: Colors.black87,
+          child: CircleAvatar(
+            radius: 34,
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black87,
+            child: Icon(
+              Platform.isIOS
+                  ? Icons.flip_camera_ios_outlined
+                  : Icons.flip_camera_android_outlined,
+              size: 40,
             ),
           ),
         ),
@@ -132,13 +159,24 @@ class _CameraViewState extends State<CameraView> {
     );
   }
 
+  Widget? _floatingActionButton() {
+    if (_mode == ScreenMode.gallery) return null;
+    if (cameras.length == 1) return null;
+    return SizedBox(
+      height: 80.0,
+      width: 80.0,
+      child: _circleButton(),
+    );
+  }
+
   // Widget _body() {
   //   Widget body;
   //   if (_mode == ScreenMode.liveFeed) {
   //     body = _liveFeedBody();
-  //   } else {
-  //     body = _galleryBody();
   //   }
+  //   // else {
+  //   //   body = _galleryBody();
+  //   // }
   //   return body;
   // }
 
@@ -150,7 +188,7 @@ class _CameraViewState extends State<CameraView> {
     final size = MediaQuery.of(context).size;
     var scale = size.aspectRatio * _controller!.value.aspectRatio;
 
-    if (scale < 1) scale = 1 / scale;
+    if (scale < 1) scale = (1 / scale);
 
     return Container(
       color: Colors.black,
@@ -165,6 +203,16 @@ class _CameraViewState extends State<CameraView> {
                       child: Text('Changing camera lens'),
                     )
                   : CameraPreview(_controller!),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            left: 0,
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.25,
+              width: MediaQuery.of(context).size.width,
+              color: const Color.fromARGB(99, 0, 0, 0),
             ),
           ),
           if (widget.customPaint != null) widget.customPaint!,

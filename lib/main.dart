@@ -137,6 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: <Widget>[
           CameraView(
             customPaint: _painter(),
+            painterFeature: _painterFeature,
             onImage: ((inputImage) {}),
           ),
           _header(),
