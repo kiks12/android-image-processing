@@ -36,6 +36,7 @@ dependencies:
   google_ml_kit: ^0.12.0
   camera: ^0.10.0
   image_picker: ^0.8.5+3
+  flutter_tts: ^3.5.0
 
 dev_dependencies:
   flutter_test:
