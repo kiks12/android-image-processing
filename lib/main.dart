@@ -84,15 +84,15 @@ class _HomeScreenState extends State<HomeScreen> {
       text = 'Text Recognition';
     }
 
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height * 0.09,
-      color: Colors.transparent,
-      child: Positioned(
-        top: 0,
-        right: 0,
-        left: 0,
-        child: SafeArea(
+    return Positioned(
+      top: 0,
+      right: 0,
+      left: 0,
+      child: SafeArea(
+        child: Container(
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height * 0.06,
+          color: Colors.transparent,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,

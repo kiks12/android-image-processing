@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:android_image_processing/screens/cropper_screen.dart';
 import 'package:android_image_processing/screens/display_text_screen.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_commons/google_mlkit_commons.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../main.dart';
@@ -104,17 +106,43 @@ class _CameraViewState extends State<CameraView> {
     );
   }
 
-  Future<void> _capturePicture() async {
-    await _controller?.takePicture().then((value) {
-      if (!mounted) return;
+  Future<CroppedFile?> _cropImage(String path) async {
+    return await ImageCropper().cropImage(
+      sourcePath: path,
+      compressFormat: ImageCompressFormat.jpg,
+      compressQuality: 100,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Crop Image',
+          initAspectRatio: CropAspectRatioPreset.original,
+          showCropGrid: true,
+          toolbarColor: Colors.transparent,
+          dimmedLayerColor: const Color.fromARGB(133, 54, 54, 54),
+          cropFrameColor: Colors.white,
+          cropGridColor: const Color.fromARGB(145, 255, 255, 255),
+          cropGridStrokeWidth: 1,
+          lockAspectRatio: false,
+        )
+      ],
+    );
+  }
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: ((context) => DisplayTextScreen(imagePath: value.path)),
-        ),
-      );
-    });
+  Future<void> _capturePicture() async {
+    await _controller?.takePicture().then(
+      (value) async {
+        if (!mounted) return;
+
+        _cropImage(value.path).then(
+          (picture) => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: ((context) =>
+                  DisplayTextScreen(imagePath: picture!.path)),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _circleButton() {
