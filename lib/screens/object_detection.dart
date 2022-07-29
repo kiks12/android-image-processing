@@ -17,7 +17,6 @@ class _ObjectDetectionScreenState extends State<ObjectDetectionScreen> {
   @override
   Widget build(BuildContext context) {
     return CameraView(
-      title: 'Object Detection',
       customPaint: _customPaint,
       onImage: (inputImage) {
         // processImage(inputImage);

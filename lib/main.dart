@@ -111,6 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
+                    fontFamily: 'Poppins',
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -135,7 +136,6 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: <Widget>[
           CameraView(
-            title: 'title',
             customPaint: _painter(),
             onImage: ((inputImage) {}),
           ),
@@ -184,15 +184,16 @@ class PainterControllerState extends State<PainterController> {
             ? Colors.white
             : Colors.transparent,
         border: Border.all(color: Colors.white, width: 0.3),
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(30),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
       margin: const EdgeInsets.symmetric(horizontal: 5),
       child: Text(
         text,
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontSize: 12,
+          fontFamily: 'Poppins',
+          fontSize: 11,
           color: widget.painterFeature == feature ? Colors.pink : Colors.white,
         ),
       ),
@@ -202,7 +203,7 @@ class PainterControllerState extends State<PainterController> {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      bottom: 110,
+      bottom: 115,
       right: 0,
       left: 0,
       child: Row(

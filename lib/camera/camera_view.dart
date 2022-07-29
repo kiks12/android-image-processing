@@ -13,7 +13,6 @@ enum ScreenMode { liveFeed, gallery }
 class CameraView extends StatefulWidget {
   const CameraView(
       {Key? key,
-      required this.title,
       required this.customPaint,
       this.text,
       required this.onImage,
@@ -21,7 +20,6 @@ class CameraView extends StatefulWidget {
       this.initialDirection = CameraLensDirection.back})
       : super(key: key);
 
-  final String title;
   final CustomPaint? customPaint;
   final String? text;
   final Function(InputImage inputImage) onImage;
