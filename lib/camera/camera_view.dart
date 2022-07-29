@@ -325,7 +325,9 @@ class _CameraViewState extends State<CameraView> {
       _controller?.getMaxZoomLevel().then((value) {
         maxZoomLevel = value;
       });
+      // if (widget.paintFeature != PaintFeature.TextRecognition) {
       // _controller?.startImageStream(_processCameraImage);
+      // }
       setState(() {});
     });
   }
