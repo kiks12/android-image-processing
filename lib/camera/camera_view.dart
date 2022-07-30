@@ -2,10 +2,12 @@ import 'dart:io';
 
 // import 'package:android_image_processing/screens/display_text_screen.dart';
 import 'package:android_image_processing/screens/cropper_screen.dart';
+import 'package:android_image_processing/screens/display_text_screen.dart';
 import 'package:android_image_processing/screens/dummy_screen.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:image_cropper/image_cropper.dart';
 
 import '../main.dart';
 
@@ -81,38 +83,34 @@ class _CameraViewState extends State<CameraView> {
     );
   }
 
-  // void _cropImage(String path) async {
-  //   final croppedImage = await ImageCropper().cropImage(
-  //     sourcePath: path,
-  //     compressFormat: ImageCompressFormat.jpg,
-  //     compressQuality: 10,
-  //     uiSettings: [
-  //       AndroidUiSettings(
-  //         toolbarTitle: 'Crop Image',
-  //         initAspectRatio: CropAspectRatioPreset.original,
-  //         showCropGrid: true,
-  //         toolbarColor: Colors.transparent,
-  //         dimmedLayerColor: const Color.fromARGB(133, 54, 54, 54),
-  //         cropFrameColor: Colors.white,
-  //         cropGridColor: const Color.fromARGB(145, 255, 255, 255),
-  //         cropGridStrokeWidth: 1,
-  //         lockAspectRatio: false,
-  //       )
-  //     ],
-  //   );
-  //   // sleep(const Duration(seconds: 2));
-  //   // Future.delayed(
-  //   //     const Duration(seconds: 1),
-  //   //     () => Navigator.push(
-  //   //         context,
-  //   //         MaterialPageRoute(
-  //   //             builder: ((context) =>
-  //   //                 DisplayTextScreen(imagePath: croppedImage!.path)))));
-  //   Future.delayed(
-  //       const Duration(seconds: 1),
-  //       () => Navigator.push(context,
-  //           MaterialPageRoute(builder: ((context) => const DummyScreen()))));
-  // }
+  void _cropImage(String path) async {
+    final croppedImage = await ImageCropper().cropImage(
+      sourcePath: path,
+      compressFormat: ImageCompressFormat.jpg,
+      compressQuality: 100,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Crop Image',
+          initAspectRatio: CropAspectRatioPreset.original,
+          showCropGrid: true,
+          toolbarColor: Colors.transparent,
+          dimmedLayerColor: const Color.fromARGB(133, 54, 54, 54),
+          cropFrameColor: Colors.white,
+          cropGridColor: const Color.fromARGB(145, 255, 255, 255),
+          cropGridStrokeWidth: 1,
+          lockAspectRatio: false,
+        )
+      ],
+    );
+    // sleep(const Duration(seconds: 2));
+    Future.delayed(
+        const Duration(seconds: 1),
+        () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: ((context) =>
+                    DisplayTextScreen(imagePath: croppedImage!.path)))));
+  }
 
   Future<XFile?> _capturePicture() async {
     final picture = await _controller?.takePicture();
@@ -124,10 +122,34 @@ class _CameraViewState extends State<CameraView> {
       return GestureDetector(
         onTap: () async {
           final picture = await _capturePicture();
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: ((context) => const ImageCropperScreen())));
+          // final croppedImage = _cropImage(picture!.path);
+          final croppedImage = await ImageCropper().cropImage(
+            sourcePath: picture!.path,
+            compressFormat: ImageCompressFormat.jpg,
+            compressQuality: 100,
+            uiSettings: [
+              AndroidUiSettings(
+                toolbarTitle: 'Crop Image',
+                initAspectRatio: CropAspectRatioPreset.original,
+                showCropGrid: true,
+                toolbarColor: Colors.transparent,
+                dimmedLayerColor: const Color.fromARGB(133, 54, 54, 54),
+                cropFrameColor: Colors.white,
+                cropGridColor: const Color.fromARGB(145, 255, 255, 255),
+                cropGridStrokeWidth: 1,
+                lockAspectRatio: false,
+                hideBottomControls: true,
+              )
+            ],
+          );
+          // sleep(const Duration(seconds: 2));
+          Future.delayed(
+              const Duration(seconds: 1),
+              () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: ((context) =>
+                          DisplayTextScreen(imagePath: croppedImage!.path)))));
         },
         child: const CircleAvatar(
           backgroundColor: Colors.white,
