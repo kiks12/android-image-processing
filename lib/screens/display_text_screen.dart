@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:ui';
 
+import 'package:android_image_processing/painters/paragraph_painter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -79,6 +81,8 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
     if (_newVoiceText != null) {
       if (_newVoiceText!.isNotEmpty) {
         await flutterTts.speak(_newVoiceText!);
+      } else {
+        await flutterTts.speak('No Texts Recognized, cannot Read!');
       }
     }
   }
@@ -97,33 +101,51 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
     _inputImage = InputImage.fromFilePath(widget.imagePath);
     _recognizedText =
         await textRecognizer.processImage(_inputImage as InputImage);
-    _newVoiceText = _recognizedText!.text;
-    setState(() {});
+
+    String text = '';
+    for (var block in _recognizedText!.blocks) {
+      for (var line in block.lines) {
+        text += '${line.text} ';
+      }
+      text += '\n\n';
+    }
+    setState(() {
+      _newVoiceText = text;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Center(
-            child: Image.file(
-              File(widget.imagePath),
-            ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              SingleChildScrollView(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  height: _recognizedText!.blocks.length * 70,
+                  width: MediaQuery.of(context).size.width,
+                  child: CustomPaint(
+                    painter: ParagraphPainter(text: _newVoiceText as String),
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  _speak();
+                },
+                child: const Text('Read'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  _stop();
+                },
+                child: const Text('Stop'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              _speak();
-            },
-            child: const Text('Read'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              _stop();
-            },
-            child: const Text('Stop'),
-          ),
-        ],
+        ),
       ),
     );
   }

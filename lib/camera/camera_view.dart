@@ -82,8 +82,8 @@ class _CameraViewState extends State<CameraView> {
     );
   }
 
-  void _cropImage(String path) async {
-    final croppedImage = await ImageCropper().cropImage(
+  Future<CroppedFile?> _cropImage(String path) async {
+    return await ImageCropper().cropImage(
       sourcePath: path,
       compressFormat: ImageCompressFormat.jpg,
       compressQuality: 100,
@@ -101,14 +101,6 @@ class _CameraViewState extends State<CameraView> {
         )
       ],
     );
-    // sleep(const Duration(seconds: 2));
-    Future.delayed(
-        const Duration(seconds: 1),
-        () => Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: ((context) =>
-                    DisplayTextScreen(imagePath: croppedImage!.path)))));
   }
 
   Future<XFile?> _capturePicture() async {
@@ -121,34 +113,26 @@ class _CameraViewState extends State<CameraView> {
       return GestureDetector(
         onTap: () async {
           final picture = await _capturePicture();
-          // final croppedImage = _cropImage(picture!.path);
-          final croppedImage = await ImageCropper().cropImage(
-            sourcePath: picture!.path,
-            compressFormat: ImageCompressFormat.jpg,
-            compressQuality: 100,
-            uiSettings: [
-              AndroidUiSettings(
-                toolbarTitle: 'Crop Image',
-                initAspectRatio: CropAspectRatioPreset.original,
-                showCropGrid: true,
-                toolbarColor: Colors.transparent,
-                dimmedLayerColor: const Color.fromARGB(133, 54, 54, 54),
-                cropFrameColor: Colors.white,
-                cropGridColor: const Color.fromARGB(145, 255, 255, 255),
-                cropGridStrokeWidth: 1,
-                lockAspectRatio: false,
-                hideBottomControls: true,
-              )
-            ],
-          );
-          // sleep(const Duration(seconds: 2));
+          // Future.delayed(
+          //   const Duration(seconds: 0),
+          //   () => Navigator.of(context).push(
+          //     MaterialPageRoute(
+          //       builder: ((context) =>
+          //           DisplayTextScreen(imagePath: picture!.path)),
+          //     ),
+          //   ),
+          // );
+          final croppedImage = await _cropImage(picture!.path);
           Future.delayed(
-              const Duration(seconds: 1),
-              () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: ((context) =>
-                          DisplayTextScreen(imagePath: croppedImage!.path)))));
+            const Duration(seconds: 0),
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: ((context) =>
+                    DisplayTextScreen(imagePath: croppedImage!.path)),
+              ),
+            ),
+          );
         },
         child: const CircleAvatar(
           backgroundColor: Colors.white,
