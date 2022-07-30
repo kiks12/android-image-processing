@@ -35,21 +35,25 @@ class CameraView extends StatefulWidget {
 }
 
 class _CameraViewState extends State<CameraView> {
+  // Camera Preview Variables
   ScreenMode _mode = ScreenMode.liveFeed;
   CameraController? _controller;
-  File? _image;
-  String? _path;
-  ImagePicker? _imagePicker;
+  // File? _image;
+  // String? _path;
+  // ImagePicker? _imagePicker;
   int _cameraIndex = 0;
   double zoomLevel = 0.0, minZoomLevel = 0.0, maxZoomLevel = 0.0;
-  final bool _allowPicker = true;
+  // final bool _allowPicker = true;
   bool _changingCameraLens = false;
+
+  // Image Cropper Variables
+  CroppedFile? _croppedFile;
 
   @override
   void initState() {
     super.initState();
 
-    _imagePicker = ImagePicker();
+    // _imagePicker = ImagePicker();
 
     if (cameras.any(
       (element) =>
@@ -106,49 +110,52 @@ class _CameraViewState extends State<CameraView> {
     );
   }
 
-  Future<CroppedFile?> _cropImage(String path) async {
-    return await ImageCropper().cropImage(
-      sourcePath: path,
-      compressFormat: ImageCompressFormat.jpg,
-      compressQuality: 100,
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: 'Crop Image',
-          initAspectRatio: CropAspectRatioPreset.original,
-          showCropGrid: true,
-          toolbarColor: Colors.transparent,
-          dimmedLayerColor: const Color.fromARGB(133, 54, 54, 54),
-          cropFrameColor: Colors.white,
-          cropGridColor: const Color.fromARGB(145, 255, 255, 255),
-          cropGridStrokeWidth: 1,
-          lockAspectRatio: false,
-        )
-      ],
-    );
-  }
+  // Future<void> _cropImage(String path) async {
+  //   ImageCropper().cropImage(
+  //     sourcePath: path,
+  //     compressFormat: ImageCompressFormat.jpg,
+  //     compressQuality: 10,
+  //     uiSettings: [
+  //       AndroidUiSettings(
+  //         toolbarTitle: 'Crop Image',
+  //         initAspectRatio: CropAspectRatioPreset.original,
+  //         showCropGrid: true,
+  //         toolbarColor: Colors.transparent,
+  //         dimmedLayerColor: const Color.fromARGB(133, 54, 54, 54),
+  //         cropFrameColor: Colors.white,
+  //         cropGridColor: const Color.fromARGB(145, 255, 255, 255),
+  //         cropGridStrokeWidth: 1,
+  //         lockAspectRatio: false,
+  //       )
+  //     ],
+  //   ).then(
+  //     (value) => Navigator.push(
+  //       context,
+  //       MaterialPageRoute(
+  //         builder: ((context) => DisplayTextScreen(imagePath: value!.path)),
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  Future<void> _capturePicture() async {
-    await _controller?.takePicture().then(
-      (value) async {
-        if (!mounted) return;
-
-        _cropImage(value.path).then(
-          (picture) => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: ((context) =>
-                  DisplayTextScreen(imagePath: picture!.path)),
-            ),
-          ),
-        );
-      },
-    );
-  }
+  Future<XFile?> _capturePicture() async => await _controller?.takePicture();
 
   Widget _circleButton() {
     if (widget.painterFeature == PainterFeature.TextRecognition) {
       return GestureDetector(
-        onTap: _capturePicture,
+        onTap: () async {
+          _capturePicture().then((value) => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: ((context) =>
+                      ImageCropperScreen(imagePath: value!.path)))));
+          // await _cropImage(file!.path);
+          // Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //         builder: ((context) =>
+          //             DisplayTextScreen(imagePath: file!.path))));
+        },
         child: const CircleAvatar(
           backgroundColor: Colors.white,
           child: CircleAvatar(
