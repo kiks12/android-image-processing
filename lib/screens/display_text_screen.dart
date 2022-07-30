@@ -45,9 +45,9 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
   @override
   void initState() {
     super.initState();
-    initTts();
-
     processImage();
+    sleep(const Duration(seconds: 2));
+    initTts();
   }
 
   Future _setAwaitOptions() async {
@@ -57,7 +57,7 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
   Future _getDefaultEngine() async {
     var engine = await flutterTts.getDefaultEngine;
     if (engine != null) {
-      print(engine);
+      // print(engine);
     }
   }
 
