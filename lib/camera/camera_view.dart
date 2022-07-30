@@ -1,9 +1,8 @@
 import 'dart:io';
 
 // import 'package:android_image_processing/screens/display_text_screen.dart';
-import 'package:android_image_processing/screens/cropper_screen.dart';
+// import 'package:android_image_processing/screens/cropper_screen.dart';
 import 'package:android_image_processing/screens/display_text_screen.dart';
-import 'package:android_image_processing/screens/dummy_screen.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
