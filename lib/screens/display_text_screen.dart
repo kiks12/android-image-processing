@@ -47,20 +47,23 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
 
   /* UI Variables */
   bool _isSpeaking = false;
+  /* */
 
-  double _calculateHeight() {
-    double height = 0.0;
-    for (var block in _recognizedText!.blocks) {
-      height += block.lines.length;
-    }
-    return height * 35;
-  }
+  /* Transalation Variables */
+  bool _translating = false;
+  late TranslateLanguage sourceLanguage;
+  late TranslateLanguage targetLanguage;
+
+  late OnDeviceTranslator onDeviceTranslator;
+  /* */
+
+  /* Cache */
+  Map<String, String> _cache = Map();
 
   @override
   void initState() {
     super.initState();
     processImage();
-    sleep(const Duration(seconds: 2));
     initTts();
   }
 
@@ -83,6 +86,51 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
     if (isAndroid) {
       _getDefaultEngine();
     }
+  }
+
+  bool translateToFilipino() {
+    return targetLanguage == TranslateLanguage.tagalog &&
+        _cache.keys.contains('Filipino');
+  }
+
+  bool translateToEnglish() {
+    return targetLanguage == TranslateLanguage.english &&
+        _cache.keys.contains('English');
+  }
+
+  Future _translateText() async {
+    setState(() => _translating = true);
+
+    if (translateToEnglish()) {
+      _newVoiceText = _cache['English'];
+      _translating = false;
+      _switchSourceAndTargetLanguages();
+      setState(() {});
+      return;
+    }
+
+    if (translateToFilipino()) {
+      _newVoiceText = _cache['Filipino'];
+      _translating = false;
+      _switchSourceAndTargetLanguages();
+      setState(() {});
+      return;
+    }
+
+    String response = await onDeviceTranslator.translateText(_newVoiceText!);
+    _cache[sourceLanguage == TranslateLanguage.english
+        ? 'English'
+        : 'Filipino'] = _newVoiceText!;
+    _translating = false;
+    _switchSourceAndTargetLanguages();
+    _newVoiceText = response;
+    setState(() {});
+  }
+
+  void _switchSourceAndTargetLanguages() {
+    final TranslateLanguage temp = sourceLanguage;
+    sourceLanguage = targetLanguage;
+    targetLanguage = temp;
   }
 
   Future _speak() async {
@@ -125,11 +173,11 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
 
   Future<void> processImage() async {
     _inputImage = InputImage.fromFilePath(widget.imagePath);
-    _recognizedText =
+    final recognizedText =
         await textRecognizer.processImage(_inputImage as InputImage);
 
     String text = '';
-    for (var block in _recognizedText!.blocks) {
+    for (var block in recognizedText.blocks) {
       for (var line in block.lines) {
         text += '${line.text} ';
       }
@@ -137,6 +185,22 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
     }
     setState(() {
       _newVoiceText = text;
+      _recognizedText = recognizedText;
+      if (recognizedText.blocks[0].recognizedLanguages[0] == 'en') {
+        sourceLanguage = TranslateLanguage.english;
+        targetLanguage = TranslateLanguage.tagalog;
+        onDeviceTranslator = OnDeviceTranslator(
+          sourceLanguage: sourceLanguage,
+          targetLanguage: targetLanguage,
+        );
+      } else {
+        sourceLanguage = TranslateLanguage.tagalog;
+        targetLanguage = TranslateLanguage.english;
+        onDeviceTranslator = OnDeviceTranslator(
+          sourceLanguage: sourceLanguage,
+          targetLanguage: targetLanguage,
+        );
+      }
     });
   }
 
@@ -144,12 +208,27 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: CustomPaint(
-              painter: ParagraphPainter(text: _newVoiceText as String),
-              size: Size.infinite,
+        child: _translating
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: CustomPaint(
+                    painter: ParagraphPainter(text: _newVoiceText as String),
+                    size: Size.infinite,
+                  ),
+                ),
+              ),
+      ),
+      bottomNavigationBar: Container(
+        height: MediaQuery.of(context).size.height * 0.1,
+        child: Center(
+          child: ElevatedButton(
+            onPressed: _translateText,
+            child: Text(
+              sourceLanguage == TranslateLanguage.tagalog
+                  ? 'Transalate to English'
+                  : 'Transalate to Filipino',
             ),
           ),
         ),
