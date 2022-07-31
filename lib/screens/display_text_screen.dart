@@ -220,7 +220,7 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
                 ),
               ),
       ),
-      bottomNavigationBar: Container(
+      bottomNavigationBar: SizedBox(
         height: MediaQuery.of(context).size.height * 0.22,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
