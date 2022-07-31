@@ -1,7 +1,5 @@
 import 'dart:io';
 
-// import 'package:android_image_processing/screens/display_text_screen.dart';
-// import 'package:android_image_processing/screens/cropper_screen.dart';
 import 'package:android_image_processing/screens/display_text_screen.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -103,37 +101,24 @@ class _CameraViewState extends State<CameraView> {
     );
   }
 
-  Future<XFile?> _capturePicture() async {
+  Future<void> _capturePicture() async {
     final picture = await _controller?.takePicture();
-    return Future.value(picture);
+    final croppedImage = await _cropImage(picture!.path);
+    if (croppedImage == null) return;
+    Future.microtask(
+      () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: ((context) =>
+              DisplayTextScreen(imagePath: croppedImage.path)),
+        ),
+      ),
+    );
   }
 
   Widget _circleButton() {
     if (widget.painterFeature == PainterFeature.TextRecognition) {
       return GestureDetector(
-        onTap: () async {
-          final picture = await _capturePicture();
-          // Future.delayed(
-          //   const Duration(seconds: 0),
-          //   () => Navigator.of(context).push(
-          //     MaterialPageRoute(
-          //       builder: ((context) =>
-          //           DisplayTextScreen(imagePath: picture!.path)),
-          //     ),
-          //   ),
-          // );
-          final croppedImage = await _cropImage(picture!.path);
-          Future.delayed(
-            const Duration(seconds: 0),
-            () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: ((context) =>
-                    DisplayTextScreen(imagePath: croppedImage!.path)),
-              ),
-            ),
-          );
-        },
+        onTap: _capturePicture,
         child: const CircleAvatar(
           backgroundColor: Colors.white,
           child: CircleAvatar(

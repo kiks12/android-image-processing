@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:android_image_processing/painters/paragraph_painter.dart';
 import 'package:flutter/foundation.dart';
@@ -20,7 +19,7 @@ class DisplayTextScreen extends StatefulWidget {
 }
 
 class _DisplayTextScreenState extends State<DisplayTextScreen> {
-  // Text to Speech variables
+  /* Text to Speech variables */
   late FlutterTts flutterTts;
   String? language;
   String? engine;
@@ -35,14 +34,27 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
   bool get isAndroid => !kIsWeb && Platform.isAndroid;
   bool get isWindows => !kIsWeb && Platform.isWindows;
   bool get isWeb => kIsWeb;
-  //
-  //
+  /* */
+  /* */
+  /* */
 
-  // Text Recognition Variables
+  /* Text Recognition Variables */
   final TextRecognizer textRecognizer =
       TextRecognizer(script: TextRecognitionScript.latin);
   InputImage? _inputImage;
   RecognizedText? _recognizedText;
+  /* */
+
+  /* UI Variables */
+  bool _isSpeaking = false;
+
+  double _calculateHeight() {
+    double height = 0.0;
+    for (var block in _recognizedText!.blocks) {
+      height += block.lines.length;
+    }
+    return height * 35;
+  }
 
   @override
   void initState() {
@@ -91,6 +103,20 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
     await flutterTts.stop();
   }
 
+  void _buttonOnClick() {
+    if (_isSpeaking) {
+      _stop();
+      _isSpeaking = false;
+      setState(() {});
+      return;
+    }
+
+    _speak();
+    _isSpeaking = true;
+    setState(() {});
+    return;
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -119,34 +145,28 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Column(
-            children: [
-              SingleChildScrollView(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  height: _recognizedText!.blocks.length * 70,
-                  width: MediaQuery.of(context).size.width,
-                  child: CustomPaint(
-                    painter: ParagraphPainter(text: _newVoiceText as String),
-                  ),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  _speak();
-                },
-                child: const Text('Read'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  _stop();
-                },
-                child: const Text('Stop'),
-              ),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: CustomPaint(
+              painter: ParagraphPainter(text: _newVoiceText as String),
+              size: Size.infinite,
+            ),
           ),
         ),
       ),
+      floatingActionButton: GestureDetector(
+        onTap: _buttonOnClick,
+        child: Material(
+          elevation: 5,
+          borderRadius: BorderRadius.circular(100),
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            radius: 39,
+            child: Icon(!_isSpeaking ? Icons.mic : Icons.mic_off),
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
