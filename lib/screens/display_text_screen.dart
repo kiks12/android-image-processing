@@ -58,7 +58,7 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
   /* */
 
   /* Cache */
-  Map<String, String> _cache = Map();
+  final Map<String, String> _cache = {};
 
   @override
   void initState() {
@@ -214,38 +214,82 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: CustomPaint(
-                    painter: ParagraphPainter(text: _newVoiceText as String),
+                    painter: ParagraphPainter(text: _newVoiceText ?? ''),
                     size: Size.infinite,
                   ),
                 ),
               ),
       ),
       bottomNavigationBar: Container(
-        height: MediaQuery.of(context).size.height * 0.1,
-        child: Center(
-          child: ElevatedButton(
-            onPressed: _translateText,
-            child: Text(
-              sourceLanguage == TranslateLanguage.tagalog
-                  ? 'Transalate to English'
-                  : 'Transalate to Filipino',
+        height: MediaQuery.of(context).size.height * 0.22,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  sourceLanguage == TranslateLanguage.english
+                      ? 'English'
+                      : 'Filipino',
+                  style: const TextStyle(fontFamily: 'Poppins', fontSize: 15),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Icon(Icons.arrow_right_alt_sharp, size: 30),
+                ),
+                Text(
+                  targetLanguage == TranslateLanguage.english
+                      ? 'English'
+                      : 'Filipino',
+                  style: const TextStyle(fontFamily: 'Poppins', fontSize: 15),
+                ),
+              ],
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.white,
+                          onPrimary: Colors.pink,
+                        ),
+                        onPressed: _translateText,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 15),
+                          child: Text('Translate'),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            GestureDetector(
+              onTap: _buttonOnClick,
+              child: Material(
+                elevation: 5,
+                borderRadius: BorderRadius.circular(100),
+                child: CircleAvatar(
+                  backgroundColor: _isSpeaking ? Colors.pink : Colors.white,
+                  foregroundColor: _isSpeaking ? Colors.white : Colors.pink,
+                  radius: 39,
+                  child: Icon(!_isSpeaking ? Icons.mic : Icons.mic_off),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
-      floatingActionButton: GestureDetector(
-        onTap: _buttonOnClick,
-        child: Material(
-          elevation: 5,
-          borderRadius: BorderRadius.circular(100),
-          child: CircleAvatar(
-            backgroundColor: Colors.white,
-            radius: 39,
-            child: Icon(!_isSpeaking ? Icons.mic : Icons.mic_off),
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      // floatingActionButton: GestureDetector(
+      //   onTap: _buttonOnClick,
+      //   child:
+      // ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
