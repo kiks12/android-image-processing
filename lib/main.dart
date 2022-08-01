@@ -93,12 +93,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onScreenClick(TapDownDetails details) {
+    if (x != null && y != null && w != null && h != null) {
+      x = null;
+      y = null;
+      w = null;
+      h = null;
+      xPoint = null;
+      yPoint = null;
+    }
+
     xPoint = details.globalPosition.dx;
     yPoint = details.globalPosition.dy;
     x = xPoint! - 30;
     y = yPoint! - 30;
     w = xPoint! + 30;
     h = yPoint! + 30;
+
     setState(() {});
   }
 
@@ -188,10 +198,6 @@ class _HomeScreenState extends State<HomeScreen> {
         children: <Widget>[
           GestureDetector(
             onTapDown: _onScreenClick,
-            onTapUp: ((details) {
-              xPoint = null;
-              yPoint = null;
-            }),
             child: CameraView(
               customPaint2: _customPaint2,
               customPaint: _painter(),
@@ -219,7 +225,15 @@ class _HomeScreenState extends State<HomeScreen> {
     _isBusy = true;
     setState(() {});
     final objects = await _objectDetector!.processImage(inputImage);
-    final painter = ObjectDetectorPainter(objects, x: x, y: y, w: w, h: h);
+    final painter = ObjectDetectorPainter(
+      objects,
+      inputImage.inputImageData!.size,
+      inputImage.inputImageData!.imageRotation,
+      x,
+      y,
+      w,
+      h,
+    );
     _customPaint2 = CustomPaint(painter: painter);
     _isBusy = false;
     if (mounted) {
