@@ -20,6 +20,7 @@ class CameraView extends StatefulWidget {
     required this.onImage,
     this.onScreenModeChanged,
     required this.painterFeature,
+    required this.controller,
     this.initialDirection = CameraLensDirection.back,
   }) : super(key: key);
 
@@ -30,6 +31,7 @@ class CameraView extends StatefulWidget {
   final Function(ScreenMode mode)? onScreenModeChanged;
   final CameraLensDirection initialDirection;
   final PainterFeature painterFeature;
+  final CameraController controller;
 
   @override
   _CameraViewState createState() => _CameraViewState();
@@ -38,7 +40,7 @@ class CameraView extends StatefulWidget {
 class _CameraViewState extends State<CameraView> {
   /* Camera Preview Variables */
   final ScreenMode _mode = ScreenMode.liveFeed;
-  CameraController? _controller;
+  // CameraController? _controller;
   int _cameraIndex = 0;
   double zoomLevel = 0.0, minZoomLevel = 0.0, maxZoomLevel = 0.0;
   bool _changingCameraLens = false;
@@ -111,9 +113,11 @@ class _CameraViewState extends State<CameraView> {
   }
 
   Future<void> _capturePicture() async {
-    final picture = await _controller?.takePicture();
-    final croppedImage = await _cropImage(picture!.path);
+    widget.controller.stopImageStream();
+    final picture = await widget.controller.takePicture();
+    final croppedImage = await _cropImage(picture.path);
     if (croppedImage == null) return;
+    widget.controller.startImageStream(_processCameraImage);
     Future.microtask(
       () => Navigator.of(context).push(
         MaterialPageRoute(
@@ -145,6 +149,7 @@ class _CameraViewState extends State<CameraView> {
 
     return GestureDetector(
       onTap: _switchLiveCamera,
+      // onTap: () {},
       child: CircleAvatar(
         backgroundColor: Colors.white,
         child: CircleAvatar(
@@ -177,12 +182,12 @@ class _CameraViewState extends State<CameraView> {
   }
 
   Widget _liveFeedBody() {
-    if (_controller?.value.isInitialized == false) {
+    if (widget.controller.value.isInitialized == false) {
       return Container();
     }
 
     final size = MediaQuery.of(context).size;
-    var scale = size.aspectRatio * _controller!.value.aspectRatio;
+    var scale = size.aspectRatio * widget.controller.value.aspectRatio;
 
     if (scale < 1) scale = (1 / scale);
 
@@ -198,7 +203,7 @@ class _CameraViewState extends State<CameraView> {
                   ? const Center(
                       child: Text('Changing camera lens'),
                     )
-                  : CameraPreview(_controller!),
+                  : CameraPreview(widget.controller),
             ),
           ),
           Positioned(
@@ -224,7 +229,7 @@ class _CameraViewState extends State<CameraView> {
               onChanged: (newSliderValue) {
                 setState(() {
                   zoomLevel = newSliderValue;
-                  _controller!.setZoomLevel(zoomLevel);
+                  widget.controller.setZoomLevel(zoomLevel);
                 });
               },
               divisions: (maxZoomLevel - 1).toInt() < 1
@@ -238,34 +243,27 @@ class _CameraViewState extends State<CameraView> {
   }
 
   Future _startLiveFeed() async {
-    final camera = cameras[0];
-    _controller = CameraController(
-      camera,
-      ResolutionPreset.max,
-      imageFormatGroup: ImageFormatGroup.yuv420,
-    );
-    _controller?.initialize().then((_) {
+    widget.controller.initialize().then((_) {
       if (!mounted) {
         return;
       }
-      _controller?.getMinZoomLevel().then((value) {
+      widget.controller.getMinZoomLevel().then((value) {
         zoomLevel = value;
         minZoomLevel = value;
       });
-      _controller?.getMaxZoomLevel().then((value) {
+      widget.controller.getMaxZoomLevel().then((value) {
         maxZoomLevel = value;
       });
       if (widget.painterFeature != PainterFeature.TextRecognition) {
-        _controller?.startImageStream(_processCameraImage);
+        widget.controller.startImageStream(_processCameraImage);
       }
       setState(() {});
     });
   }
 
   Future _stopLiveFeed() async {
-    await _controller?.stopImageStream();
-    await _controller?.dispose();
-    _controller = null;
+    await widget.controller.stopImageStream();
+    await widget.controller.dispose();
   }
 
   Future _switchLiveCamera() async {

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:android_image_processing/main.dart';
 import 'package:android_image_processing/painters/paragraph_painter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -19,23 +20,7 @@ class DisplayTextScreen extends StatefulWidget {
 }
 
 class _DisplayTextScreenState extends State<DisplayTextScreen> {
-  /* Text to Speech variables */
-  late FlutterTts flutterTts;
-  String? language;
-  String? engine;
-  double volume = 0.5;
-  double pitch = 1.0;
-  double rate = 0.5;
-  bool isCurrentLanguageInstalled = false;
-
   String? _newVoiceText;
-
-  bool get isIOS => !kIsWeb && Platform.isIOS;
-  bool get isAndroid => !kIsWeb && Platform.isAndroid;
-  bool get isWindows => !kIsWeb && Platform.isWindows;
-  bool get isWeb => kIsWeb;
-  /* */
-  /* */
   /* */
 
   /* Text Recognition Variables */
@@ -64,29 +49,29 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
   void initState() {
     super.initState();
     processImage();
-    initTts();
+    // initTts();
   }
 
-  Future _setAwaitOptions() async {
-    await flutterTts.awaitSpeakCompletion(true);
-  }
+  // Future _setAwaitOptions() async {
+  //   await flutterTts.awaitSpeakCompletion(true);
+  // }
 
-  Future _getDefaultEngine() async {
-    var engine = await flutterTts.getDefaultEngine;
-    if (engine != null) {
-      // print(engine);
-    }
-  }
+  // Future _getDefaultEngine() async {
+  //   var engine = await flutterTts.getDefaultEngine;
+  //   if (engine != null) {
+  //     // print(engine);
+  //   }
+  // }
 
-  initTts() {
-    flutterTts = FlutterTts();
+  // initTts() {
+  //   flutterTts = FlutterTts();
 
-    _setAwaitOptions();
+  //   _setAwaitOptions();
 
-    if (isAndroid) {
-      _getDefaultEngine();
-    }
-  }
+  //   if (isAndroid) {
+  //     _getDefaultEngine();
+  //   }
+  // }
 
   bool translateToFilipino() {
     return targetLanguage == TranslateLanguage.tagalog &&

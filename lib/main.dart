@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:android_image_processing/camera/camera_view.dart';
 import 'package:android_image_processing/painters/object_detector_painter.dart';
 import 'package:android_image_processing/painters/rectangle_painter.dart';
 import 'package:android_image_processing/widgets/painter_controller.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -12,6 +16,21 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io' as io;
 
 List<CameraDescription> cameras = [];
+
+/* Text to Speech variables */
+late FlutterTts flutterTts;
+String? language;
+String? engine;
+double volume = 0.5;
+double pitch = 1.0;
+double rate = 0.5;
+bool isCurrentLanguageInstalled = false;
+
+bool get isIOS => !kIsWeb && Platform.isIOS;
+bool get isAndroid => !kIsWeb && Platform.isAndroid;
+bool get isWindows => !kIsWeb && Platform.isWindows;
+bool get isWeb => kIsWeb;
+/* */
 
 enum PainterFeature { ObjectDetection, ColorRecognition, TextRecognition }
 
@@ -68,14 +87,46 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isBusy = false;
   /*  */
 
+  /* Camera Controller Variables */
+  late CameraController _cameraController;
+
   @override
   void initState() {
     super.initState();
+
+    _cameraController = CameraController(
+      cameras[0],
+      ResolutionPreset.max,
+      imageFormatGroup: ImageFormatGroup.yuv420,
+    );
+
+    initTts();
   }
 
   @override
   void dispose() {
     super.dispose();
+  }
+
+  Future _setAwaitOptions() async {
+    await flutterTts.awaitSpeakCompletion(true);
+  }
+
+  Future _getDefaultEngine() async {
+    var engine = await flutterTts.getDefaultEngine;
+    if (engine != null) {
+      // print(engine);
+    }
+  }
+
+  initTts() {
+    flutterTts = FlutterTts();
+
+    _setAwaitOptions();
+
+    if (isAndroid) {
+      _getDefaultEngine();
+    }
   }
 
   void _setPainterFeature(PainterFeature feature) {
@@ -199,8 +250,9 @@ class _HomeScreenState extends State<HomeScreen> {
           GestureDetector(
             onTapDown: _onScreenClick,
             child: CameraView(
-              customPaint2: _customPaint2,
+              controller: _cameraController,
               customPaint: _painter(),
+              customPaint2: _customPaint2,
               painterFeature: _painterFeature,
               onImage: ((inputImage) {
                 if (_painterFeature == PainterFeature.ObjectDetection) {

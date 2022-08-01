@@ -1,9 +1,12 @@
 import 'dart:ui';
 import 'dart:ui' as ui;
 
+import 'package:android_image_processing/main.dart';
 import 'package:android_image_processing/painters/coordinates_translator.dart';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
+
+String lastObject = '';
 
 class ObjectDetectorPainter extends CustomPainter {
   const ObjectDetectorPainter(
@@ -25,7 +28,7 @@ class ObjectDetectorPainter extends CustomPainter {
   final double? h;
 
   @override
-  void paint(Canvas canvas, Size size) {
+  void paint(Canvas canvas, Size size) async {
     final paint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke
@@ -89,6 +92,15 @@ class ObjectDetectorPainter extends CustomPainter {
           )),
         Offset(left, top),
       );
+
+      if (text.isNotEmpty) {
+        if (lastObject == text) {
+          // do nothing
+        } else {
+          await flutterTts.speak('The object is $text');
+          lastObject = text;
+        }
+      }
     }
   }
 
