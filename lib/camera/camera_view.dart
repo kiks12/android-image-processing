@@ -1,8 +1,9 @@
 import 'dart:io';
-
 import 'package:android_image_processing/screens/display_text_screen.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image_cropper/image_cropper.dart';
 
@@ -14,6 +15,7 @@ class CameraView extends StatefulWidget {
   const CameraView({
     Key? key,
     required this.customPaint,
+    required this.customPaint2,
     this.text,
     required this.onImage,
     this.onScreenModeChanged,
@@ -22,6 +24,7 @@ class CameraView extends StatefulWidget {
   }) : super(key: key);
 
   final CustomPaint? customPaint;
+  final CustomPaint? customPaint2;
   final String? text;
   final Function(InputImage inputImage) onImage;
   final Function(ScreenMode mode)? onScreenModeChanged;
@@ -33,12 +36,13 @@ class CameraView extends StatefulWidget {
 }
 
 class _CameraViewState extends State<CameraView> {
-  // Camera Preview Variables
+  /* Camera Preview Variables */
   final ScreenMode _mode = ScreenMode.liveFeed;
   CameraController? _controller;
   int _cameraIndex = 0;
   double zoomLevel = 0.0, minZoomLevel = 0.0, maxZoomLevel = 0.0;
   bool _changingCameraLens = false;
+  /*    */
 
   @override
   void initState() {
@@ -74,7 +78,12 @@ class _CameraViewState extends State<CameraView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _liveFeedBody(),
+      body: Stack(
+        children: [
+          _liveFeedBody(),
+          if (widget.customPaint != null) widget.customPaint!,
+        ],
+      ),
       floatingActionButton: _floatingActionButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
@@ -203,6 +212,7 @@ class _CameraViewState extends State<CameraView> {
             ),
           ),
           if (widget.customPaint != null) widget.customPaint!,
+          if (widget.customPaint2 != null) widget.customPaint2!,
           Positioned(
             bottom: 170,
             left: 50,
@@ -245,15 +255,15 @@ class _CameraViewState extends State<CameraView> {
       _controller?.getMaxZoomLevel().then((value) {
         maxZoomLevel = value;
       });
-      // if (widget.paintFeature != PaintFeature.TextRecognition) {
-      // _controller?.startImageStream(_processCameraImage);
-      // }
+      if (widget.painterFeature != PainterFeature.TextRecognition) {
+        _controller?.startImageStream(_processCameraImage);
+      }
       setState(() {});
     });
   }
 
   Future _stopLiveFeed() async {
-    // await _controller?.stopImageStream();
+    await _controller?.stopImageStream();
     await _controller?.dispose();
     _controller = null;
   }
@@ -267,45 +277,45 @@ class _CameraViewState extends State<CameraView> {
     setState(() => _changingCameraLens = false);
   }
 
-  // Future _processCameraImage(CameraImage image) async {
-  //   final WriteBuffer allBytes = WriteBuffer();
-  //   for (final Plane plane in image.planes) {
-  //     allBytes.putUint8List(plane.bytes);
-  //   }
-  //   final bytes = allBytes.done().buffer.asUint8List();
+  Future _processCameraImage(CameraImage image) async {
+    final WriteBuffer allBytes = WriteBuffer();
+    for (final Plane plane in image.planes) {
+      allBytes.putUint8List(plane.bytes);
+    }
+    final bytes = allBytes.done().buffer.asUint8List();
 
-  //   final Size imageSize =
-  //       Size(image.width.toDouble(), image.height.toDouble());
+    final Size imageSize =
+        Size(image.width.toDouble(), image.height.toDouble());
 
-  //   final camera = cameras[_cameraIndex];
-  //   final imageRotation =
-  //       InputImageRotationValue.fromRawValue(camera.sensorOrientation);
-  //   if (imageRotation == null) return;
+    final camera = cameras[_cameraIndex];
+    final imageRotation =
+        InputImageRotationValue.fromRawValue(camera.sensorOrientation);
+    if (imageRotation == null) return;
 
-  //   final inputImageFormat =
-  //       InputImageFormatValue.fromRawValue(image.format.raw);
-  //   if (inputImageFormat == null) return;
+    final inputImageFormat =
+        InputImageFormatValue.fromRawValue(image.format.raw);
+    if (inputImageFormat == null) return;
 
-  //   final planeData = image.planes.map(
-  //     (Plane plane) {
-  //       return InputImagePlaneMetadata(
-  //         bytesPerRow: plane.bytesPerRow,
-  //         height: plane.height,
-  //         width: plane.width,
-  //       );
-  //     },
-  //   ).toList();
+    final planeData = image.planes.map(
+      (Plane plane) {
+        return InputImagePlaneMetadata(
+          bytesPerRow: plane.bytesPerRow,
+          height: plane.height,
+          width: plane.width,
+        );
+      },
+    ).toList();
 
-  //   final inputImageData = InputImageData(
-  //     size: imageSize,
-  //     imageRotation: imageRotation,
-  //     inputImageFormat: inputImageFormat,
-  //     planeData: planeData,
-  //   );
+    final inputImageData = InputImageData(
+      size: imageSize,
+      imageRotation: imageRotation,
+      inputImageFormat: inputImageFormat,
+      planeData: planeData,
+    );
 
-  //   final inputImage =
-  //       InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
+    final inputImage =
+        InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
 
-  //   widget.onImage(inputImage);
-  // }
+    widget.onImage(inputImage);
+  }
 }
