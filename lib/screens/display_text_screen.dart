@@ -1,10 +1,7 @@
-import 'dart:io';
 
 import 'package:android_image_processing/main.dart';
 import 'package:android_image_processing/painters/paragraph_painter.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 
 class DisplayTextScreen extends StatefulWidget {
