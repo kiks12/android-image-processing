@@ -120,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /* PALETTE GENERATOR CODES */
   Future<void> _updatePaletteGenerator(Rect? newRegion, dynamic image) async {
-    PaletteGenerator.fromImage(
+    paletteGenerator = await PaletteGenerator.fromImage(
       image,
       region: newRegion!,
       maximumColorCount: 20,
@@ -171,7 +171,8 @@ class _HomeScreenState extends State<HomeScreen> {
       _initializeDetector(DetectionMode.stream);
     }
     if (feature == PainterFeature.ColorRecognition) {
-      _cameraController.startImageStream((image) {
+      _cameraController.stopImageStream();
+      _cameraController.startImageStream((image) async {
         final WriteBuffer allBytes = WriteBuffer();
         for (final Plane plane in image.planes) {
           allBytes.putUint8List(plane.bytes);
@@ -206,7 +207,8 @@ class _HomeScreenState extends State<HomeScreen> {
             InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
 
         Rect newRegion = Rect.fromPoints(Offset(x!, y!), Offset(w!, h!));
-        _updatePaletteGenerator(newRegion, File(inputImage.filePath!));
+        await _updatePaletteGenerator(
+            newRegion, Image.file(File(inputImage.filePath!)));
         text = inputImage.filePath!;
         setState(() {});
       });
@@ -290,18 +292,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       objectDetectionProcessImage(inputImage);
                     }
                     if (_painterFeature == PainterFeature.ColorRecognition) {
-                      Image image = Image.file(
-                        File(inputImage.filePath!),
-                      );
-                      Rect newRegion =
-                          Rect.fromPoints(Offset(x!, y!), Offset(w!, h!));
-                      await _updatePaletteGenerator(
-                        newRegion,
-                        image,
-                      );
-                      region = newRegion;
-                      text = inputImage.filePath!;
-                      setState(() {});
+                      // Image image = Image.file(
+                      //   File(inputImage.filePath!),
+                      // );
+                      // Rect newRegion =
+                      //     Rect.fromPoints(Offset(x!, y!), Offset(w!, h!));
+                      // await _updatePaletteGenerator(
+                      //   newRegion,
+                      //   image,
+                      // );
+                      // region = newRegion;
+                      // text = inputImage.filePath!;
+                      // setState(() {});
                     }
                   }),
                 ),
@@ -309,13 +311,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           MainHeader(painterFeature: _painterFeature),
-          if (paletteGenerator != null)
-            Positioned(
-              bottom: 300,
-              left: 50,
-              right: 50,
-              child: Center(child: Text(text)),
-            ),
+          Positioned(
+            bottom: 300,
+            left: 50,
+            right: 50,
+            child: Center(child: Text(text)),
+          ),
           // Positioned(
           //   bottom: 300,
           //   left: 40,
