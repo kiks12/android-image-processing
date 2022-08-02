@@ -41,6 +41,7 @@ dependencies:
   path_provider: ^2.0.11
   path: ^1.8.1
   tflite_flutter: ^0.9.0
+  cyclop: ^0.5.2
 
 dev_dependencies:
   flutter_test:
