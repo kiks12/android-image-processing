@@ -21,7 +21,6 @@ class CameraView extends StatefulWidget {
     this.onScreenModeChanged,
     required this.painterFeature,
     required this.controller,
-    this.initialDirection = CameraLensDirection.back,
   }) : super(key: key);
 
   final CustomPaint? customPaint;
@@ -29,7 +28,6 @@ class CameraView extends StatefulWidget {
   final String? text;
   final Function(InputImage inputImage) onImage;
   final Function(ScreenMode mode)? onScreenModeChanged;
-  final CameraLensDirection initialDirection;
   final PainterFeature painterFeature;
   final CameraController controller;
 
@@ -40,7 +38,6 @@ class CameraView extends StatefulWidget {
 class _CameraViewState extends State<CameraView> {
   /* Camera Preview Variables */
   final ScreenMode _mode = ScreenMode.liveFeed;
-  // CameraController? _controller;
   int _cameraIndex = 0;
   double zoomLevel = 0.0, minZoomLevel = 0.0, maxZoomLevel = 0.0;
   bool _changingCameraLens = false;
@@ -49,31 +46,10 @@ class _CameraViewState extends State<CameraView> {
   @override
   void initState() {
     super.initState();
-
-    if (cameras.any(
-      (element) =>
-          element.lensDirection == widget.initialDirection &&
-          element.sensorOrientation == 90,
-    )) {
-      _cameraIndex = cameras.indexOf(
-        cameras.firstWhere((element) =>
-            element.lensDirection == widget.initialDirection &&
-            element.sensorOrientation == 90),
-      );
-    } else {
-      _cameraIndex = cameras.indexOf(
-        cameras.firstWhere(
-          (element) => element.lensDirection == widget.initialDirection,
-        ),
-      );
-    }
-
-    _startLiveFeed();
   }
 
   @override
   void dispose() {
-    _stopLiveFeed();
     super.dispose();
   }
 
@@ -91,6 +67,7 @@ class _CameraViewState extends State<CameraView> {
     );
   }
 
+  /* IMAGE CROPPER */
   Future<CroppedFile?> _cropImage(String path) async {
     return await ImageCropper().cropImage(
       sourcePath: path,
@@ -113,11 +90,9 @@ class _CameraViewState extends State<CameraView> {
   }
 
   Future<void> _capturePicture() async {
-    widget.controller.stopImageStream();
     final picture = await widget.controller.takePicture();
     final croppedImage = await _cropImage(picture.path);
     if (croppedImage == null) return;
-    widget.controller.startImageStream(_processCameraImage);
     Future.microtask(
       () => Navigator.of(context).push(
         MaterialPageRoute(
@@ -149,7 +124,6 @@ class _CameraViewState extends State<CameraView> {
 
     return GestureDetector(
       onTap: _switchLiveCamera,
-      // onTap: () {},
       child: CircleAvatar(
         backgroundColor: Colors.white,
         child: CircleAvatar(
@@ -228,8 +202,7 @@ class _CameraViewState extends State<CameraView> {
               max: maxZoomLevel,
               onChanged: (newSliderValue) {
                 setState(() {
-                  zoomLevel = newSliderValue;
-                  widget.controller.setZoomLevel(zoomLevel);
+                  widget.controller.setZoomLevel(newSliderValue);
                 });
               },
               divisions: (maxZoomLevel - 1).toInt() < 1
@@ -242,78 +215,78 @@ class _CameraViewState extends State<CameraView> {
     );
   }
 
-  Future _startLiveFeed() async {
-    widget.controller.initialize().then((_) {
-      if (!mounted) {
-        return;
-      }
-      widget.controller.getMinZoomLevel().then((value) {
-        zoomLevel = value;
-        minZoomLevel = value;
-      });
-      widget.controller.getMaxZoomLevel().then((value) {
-        maxZoomLevel = value;
-      });
-      if (widget.painterFeature != PainterFeature.TextRecognition) {
-        widget.controller.startImageStream(_processCameraImage);
-      }
-      setState(() {});
-    });
-  }
+  // Future _startLiveFeed() async {
+  //   widget.controller.initialize().then((_) {
+  //     if (!mounted) {
+  //       return;
+  //     }
+  //     widget.controller.getMinZoomLevel().then((value) {
+  //       zoomLevel = value;
+  //       minZoomLevel = value;
+  //     });
+  //     widget.controller.getMaxZoomLevel().then((value) {
+  //       maxZoomLevel = value;
+  //     });
+  //     if (widget.painterFeature != PainterFeature.TextRecognition) {
+  //       widget.controller.startImageStream(_processCameraImage);
+  //     }
+  //     setState(() {});
+  //   });
+  // }
 
-  Future _stopLiveFeed() async {
-    await widget.controller.stopImageStream();
-    await widget.controller.dispose();
-  }
+  // Future _stopLiveFeed() async {
+  //   await widget.controller.stopImageStream();
+  //   await widget.controller.dispose();
+  // }
 
   Future _switchLiveCamera() async {
     setState(() => _changingCameraLens = true);
     _cameraIndex = (_cameraIndex + 1) % cameras.length;
 
-    await _stopLiveFeed();
-    await _startLiveFeed();
+    // await _stopLiveFeed();
+    // await _startLiveFeed();
     setState(() => _changingCameraLens = false);
   }
 
-  Future _processCameraImage(CameraImage image) async {
-    final WriteBuffer allBytes = WriteBuffer();
-    for (final Plane plane in image.planes) {
-      allBytes.putUint8List(plane.bytes);
-    }
-    final bytes = allBytes.done().buffer.asUint8List();
+  // Future _processCameraImage(CameraImage image) async {
+  //   final WriteBuffer allBytes = WriteBuffer();
+  //   for (final Plane plane in image.planes) {
+  //     allBytes.putUint8List(plane.bytes);
+  //   }
+  //   final bytes = allBytes.done().buffer.asUint8List();
 
-    final Size imageSize =
-        Size(image.width.toDouble(), image.height.toDouble());
+  //   final Size imageSize =
+  //       Size(image.width.toDouble(), image.height.toDouble());
 
-    final camera = cameras[_cameraIndex];
-    final imageRotation =
-        InputImageRotationValue.fromRawValue(camera.sensorOrientation);
-    if (imageRotation == null) return;
+  //   final camera = cameras[_cameraIndex];
+  //   final imageRotation =
+  //       InputImageRotationValue.fromRawValue(camera.sensorOrientation);
+  //   if (imageRotation == null) return;
 
-    final inputImageFormat =
-        InputImageFormatValue.fromRawValue(image.format.raw);
-    if (inputImageFormat == null) return;
+  //   final inputImageFormat =
+  //       InputImageFormatValue.fromRawValue(image.format.raw);
+  //   if (inputImageFormat == null) return;
 
-    final planeData = image.planes.map(
-      (Plane plane) {
-        return InputImagePlaneMetadata(
-          bytesPerRow: plane.bytesPerRow,
-          height: plane.height,
-          width: plane.width,
-        );
-      },
-    ).toList();
+  //   final planeData = image.planes.map(
+  //     (Plane plane) {
+  //       return InputImagePlaneMetadata(
+  //         bytesPerRow: plane.bytesPerRow,
+  //         height: plane.height,
+  //         width: plane.width,
+  //       );
+  //     },
+  //   ).toList();
 
-    final inputImageData = InputImageData(
-      size: imageSize,
-      imageRotation: imageRotation,
-      inputImageFormat: inputImageFormat,
-      planeData: planeData,
-    );
+  //   final inputImageData = InputImageData(
+  //     size: imageSize,
+  //     imageRotation: imageRotation,
+  //     inputImageFormat: inputImageFormat,
+  //     planeData: planeData,
+  //   );
 
-    final inputImage =
-        InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
+  //   final inputImage =
+  //       InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
 
-    widget.onImage(inputImage);
-  }
+  //   widget.onImage(inputImage);
+  // }
 }
