@@ -13,11 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
-import 'package:palette_generator/palette_generator.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
-
-import 'package:image/image.dart' as imglib;
 
 List<CameraDescription> cameras = [];
 
@@ -76,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /* Custom Paint Variables */
   CustomPaint? _customPaint;
   CustomPaint? _customPaint2;
-  PainterFeature _painterFeature = PainterFeature.ColorRecognition;
+  PainterFeature _painterFeature = PainterFeature.ObjectDetection;
   /* */
 
   /* Screen Click Coordinates Variables */
@@ -100,12 +97,6 @@ class _HomeScreenState extends State<HomeScreen> {
   CameraLensDirection _initialDirection = CameraLensDirection.back;
   double _zoomLevel = 0.0, _minZoomLevel = 0.0, _maxZoomLevel = 0.0;
   bool _changingCameraLens = false;
-  /*  */
-
-  /* Palette Generator Variables */
-  Rect? region;
-  PaletteGenerator? paletteGenerator;
-  String text = '';
   /*  */
 
   @override
@@ -163,11 +154,12 @@ class _HomeScreenState extends State<HomeScreen> {
       if (_painterFeature != PainterFeature.TextRecognition) {
         _startLiveFeed(_imageStreamCallback);
       }
+
       setState(() {});
     });
   }
 
-  void _startLiveFeed(void Function(CameraImage image) func) {
+  void _startLiveFeed(void Function(CameraImage image) func) async {
     _cameraController.startImageStream(func);
   }
 
@@ -224,8 +216,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _imageStreamCallback(CameraImage image) async {
-    final inputImage = await _processCameraImage(image);
     if (_painterFeature == PainterFeature.ObjectDetection) {
+      final inputImage = await _processCameraImage(image);
       await _objectDetectionProcessImage(inputImage);
     }
     if (_painterFeature == PainterFeature.ColorRecognition) {
@@ -233,18 +225,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
   /* CAMERA CONTROLLER FUNCTIONS */
-
-  /* PALETTE GENERATOR CODES */
-  Future<void> _updatePaletteGenerator(
-      Rect? newRegion, ImageProvider image) async {
-    paletteGenerator = await PaletteGenerator.fromImageProvider(
-      image,
-      region: newRegion!,
-      maximumColorCount: 20,
-    );
-    setState(() {});
-  }
-  /* PALETTE GENERATOR CODES */
 
   /* TEXT TO SPEECH FUNCTIONS */
   Future _setAwaitOptions() async {
@@ -279,21 +259,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _painterFeature = feature;
 
     if (feature == PainterFeature.ObjectDetection) {
-      _isLoading = true;
-      setState(() {});
       _startLiveFeed(_imageStreamCallback);
       _initializeDetector(DetectionMode.stream);
-      _isLoading = false;
-      setState(() {});
     }
 
     if (feature == PainterFeature.ColorRecognition) {
-      _isLoading = true;
-      setState(() {});
       _startLiveFeed(_imageStreamCallback);
       _customPaint2 = null;
-      _isLoading = false;
-      setState(() {});
     }
 
     if (feature == PainterFeature.TextRecognition) {
@@ -371,27 +343,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         customPaint: _painter(),
                         customPaint2: _customPaint2,
                         painterFeature: _painterFeature,
-                        onImage: ((inputImage) async {
-                          // if (_painterFeature ==
-                          //     PainterFeature.ObjectDetection) {
-                          //   _objectDetectionProcessImage(inputImage);
-                          // }
-                          // if (_painterFeature ==
-                          //     PainterFeature.ColorRecognition) {
-                          //   //
-                          // }
-                        }),
                       ),
               ],
             ),
           ),
           MainHeader(painterFeature: _painterFeature),
-          Positioned(
-            bottom: 300,
-            left: 50,
-            right: 50,
-            child: Center(child: Text('adsfs')),
-          ),
           PainterController(
             painterFeature: _painterFeature,
             setPainterFeature: _setPainterFeature,

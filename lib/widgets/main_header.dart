@@ -1,7 +1,5 @@
 import 'package:android_image_processing/main.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
 
 class MainHeader extends StatefulWidget {
   const MainHeader({
@@ -16,11 +14,8 @@ class MainHeader extends StatefulWidget {
 }
 
 class _MainHeaderState extends State<MainHeader> {
-  late String text;
-
-  @override
-  void initState() {
-    super.initState();
+  String _text() {
+    String text = '';
     if (widget.painterFeature == PainterFeature.ObjectDetection) {
       text = 'Object Recognition';
     }
@@ -30,7 +25,7 @@ class _MainHeaderState extends State<MainHeader> {
     if (widget.painterFeature == PainterFeature.TextRecognition) {
       text = 'Text Recognition';
     }
-    setState(() {});
+    return text;
   }
 
   @override
@@ -57,7 +52,7 @@ class _MainHeaderState extends State<MainHeader> {
               ),
               Expanded(
                 child: Text(
-                  text,
+                  _text(),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white,
