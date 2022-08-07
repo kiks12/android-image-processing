@@ -73,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /* Custom Paint Variables */
   CustomPaint? _customPaint;
   CustomPaint? _customPaint2;
-  PainterFeature _painterFeature = PainterFeature.ObjectDetection;
+  PainterFeature _painterFeature = PainterFeature.ColorRecognition;
   /* */
 
   /* Screen Click Coordinates Variables */
@@ -173,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   RETURNS : InputImage
   */
-  Future<InputImage> _processCameraImage(CameraImage image) async {
+  _processCameraImage(CameraImage image, dynamic onImage) {
     final WriteBuffer allBytes = WriteBuffer();
     for (final Plane plane in image.planes) {
       allBytes.putUint8List(plane.bytes);
@@ -186,11 +186,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final camera = cameras[_cameraIndex];
     final imageRotation =
         InputImageRotationValue.fromRawValue(camera.sensorOrientation);
-    // if (imageRotation == null) return Future.value(null);
+    if (imageRotation == null) return null;
 
     final inputImageFormat =
         InputImageFormatValue.fromRawValue(image.format.raw);
-    // if (inputImageFormat == null) return Future.value(null);
+    if (inputImageFormat == null) return null;
 
     final planeData = image.planes.map(
       (Plane plane) {
@@ -204,21 +204,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final inputImageData = InputImageData(
       size: imageSize,
-      imageRotation: imageRotation!,
-      inputImageFormat: inputImageFormat!,
+      imageRotation: imageRotation,
+      inputImageFormat: inputImageFormat,
       planeData: planeData,
     );
 
     final inputImage =
         InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
 
-    return inputImage;
+    onImage(inputImage);
   }
 
   void _imageStreamCallback(CameraImage image) async {
     if (_painterFeature == PainterFeature.ObjectDetection) {
-      final inputImage = await _processCameraImage(image);
-      await _objectDetectionProcessImage(inputImage);
+      _processCameraImage(image, _objectDetectionProcessImage);
     }
     if (_painterFeature == PainterFeature.ColorRecognition) {
       setState(() {});
@@ -259,11 +258,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _painterFeature = feature;
 
     if (feature == PainterFeature.ObjectDetection) {
-      _startLiveFeed(_imageStreamCallback);
+      _rectanglePainterSetter();
       _initializeDetector(DetectionMode.stream);
+      _startLiveFeed(_imageStreamCallback);
     }
 
     if (feature == PainterFeature.ColorRecognition) {
+      _rectanglePainterSetter();
       _startLiveFeed(_imageStreamCallback);
       _customPaint2 = null;
     }
@@ -307,22 +308,23 @@ class _HomeScreenState extends State<HomeScreen> {
         h: h,
       ),
     );
-  }
-
-  CustomPaint? _painter() {
-    if (_painterFeature == PainterFeature.ObjectDetection) {
-      _rectanglePainterSetter();
-      // can add another canvas using customPainter2
-    }
-
-    if (_painterFeature == PainterFeature.ColorRecognition) {
-      _rectanglePainterSetter();
-      // can add another canvas using customPainter2
-    }
-
     setState(() {});
-    return _customPaint;
   }
+
+  // CustomPaint? _painter() {
+  //   if (_painterFeature == PainterFeature.ObjectDetection) {
+  //     _rectanglePainterSetter();
+  //     // can add another canvas using customPainter2
+  //   }
+
+  //   if (_painterFeature == PainterFeature.ColorRecognition) {
+  //     _rectanglePainterSetter();
+  //     // can add another canvas using customPainter2
+  //   }
+
+  //   setState(() {});
+  //   return _customPaint;
+  // }
   /* PAINTER MENU CONTROLLER FUNCTIONS */
 
   @override
@@ -340,7 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       )
                     : CameraView(
                         controller: _cameraController,
-                        customPaint: _painter(),
+                        customPaint: _customPaint,
                         customPaint2: _customPaint2,
                         painterFeature: _painterFeature,
                       ),
