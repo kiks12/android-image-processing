@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:io' as io;
-// import 'dart:math' as math;
 
 import 'package:android_image_processing/camera/camera_view.dart';
 import 'package:android_image_processing/painters/object_detector_painter.dart';
@@ -247,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /* TEXT TO SPEECH FUNCTIONS */
 
   /* PAINTER MENU CONTROLLER FUNCTIONS */
-  void _setPainterFeature(PainterFeature feature) {
+  void _setCustomPainterOne(PainterFeature feature) {
     localOffsetX = null;
     localOffsetY = null;
     x = null;
@@ -255,23 +254,21 @@ class _HomeScreenState extends State<HomeScreen> {
     w = null;
     h = null;
     _customPaint = null;
+    _customPaint2 = null;
     _painterFeature = feature;
 
     if (feature == PainterFeature.ObjectDetection) {
-      _rectanglePainterSetter();
       _initializeDetector(DetectionMode.stream);
       _startLiveFeed(_imageStreamCallback);
     }
 
     if (feature == PainterFeature.ColorRecognition) {
-      _rectanglePainterSetter();
       _startLiveFeed(_imageStreamCallback);
       _customPaint2 = null;
     }
 
     if (feature == PainterFeature.TextRecognition) {
       _stopLiveFeed();
-      _customPaint2 = null;
     }
 
     setState(() {});
@@ -289,16 +286,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
     localOffsetX = details.globalPosition.dx;
     localOffsetY = details.globalPosition.dy;
-    x = localOffsetX! - 30;
-    y = localOffsetY! - 30;
-    w = localOffsetX! + 30;
-    h = localOffsetY! + 30;
+    x = localOffsetX! - 20;
+    y = localOffsetY! - 20;
+    w = localOffsetX! + 20;
+    h = localOffsetY! + 20;
 
     setState(() {});
   }
 
-  void _rectanglePainterSetter() {
-    _customPaint = CustomPaint(
+  CustomPaint _rectanglePainter() {
+    return CustomPaint(
       painter: RectanglePainter(
         xPoint: localOffsetX,
         yPoint: localOffsetY,
@@ -308,23 +305,22 @@ class _HomeScreenState extends State<HomeScreen> {
         h: h,
       ),
     );
-    setState(() {});
   }
 
-  // CustomPaint? _painter() {
-  //   if (_painterFeature == PainterFeature.ObjectDetection) {
-  //     _rectanglePainterSetter();
-  //     // can add another canvas using customPainter2
-  //   }
+  CustomPaint? _painter() {
+    if (_painterFeature == PainterFeature.ObjectDetection) {
+      _customPaint = _rectanglePainter();
+      // can add another canvas using customPainter2
+    }
 
-  //   if (_painterFeature == PainterFeature.ColorRecognition) {
-  //     _rectanglePainterSetter();
-  //     // can add another canvas using customPainter2
-  //   }
+    if (_painterFeature == PainterFeature.ColorRecognition) {
+      _customPaint = _rectanglePainter();
+      // can add another canvas using customPainter2
+    }
 
-  //   setState(() {});
-  //   return _customPaint;
-  // }
+    setState(() {});
+    return _customPaint;
+  }
   /* PAINTER MENU CONTROLLER FUNCTIONS */
 
   @override
@@ -342,7 +338,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       )
                     : CameraView(
                         controller: _cameraController,
-                        customPaint: _customPaint,
+                        customPaint: _painter(),
+                        // customPaint: _customPaint,
                         customPaint2: _customPaint2,
                         painterFeature: _painterFeature,
                       ),
@@ -352,7 +349,7 @@ class _HomeScreenState extends State<HomeScreen> {
           MainHeader(painterFeature: _painterFeature),
           PainterController(
             painterFeature: _painterFeature,
-            setPainterFeature: _setPainterFeature,
+            setPainterFeature: _setCustomPainterOne,
           ),
         ],
       ),
