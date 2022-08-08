@@ -14,6 +14,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+// import 'package:matrix2d/matrix2d.dart';
 
 List<CameraDescription> cameras = [];
 
@@ -219,7 +220,11 @@ class _HomeScreenState extends State<HomeScreen> {
       _processCameraImage(image, _objectDetectionProcessImage);
     }
     if (_painterFeature == PainterFeature.ColorRecognition) {
-      setState(() {});
+      // _processCameraImage(image, (InputImage image) {
+      // print(Offset(image.inputImageData!.size.width,
+      // image.inputImageData!.size.height));
+      // print(image.inputImageData!.size);
+      // });
     }
   }
   /* CAMERA CONTROLLER FUNCTIONS */
@@ -256,12 +261,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _customPaint = null;
     _customPaint2 = null;
     _painterFeature = feature;
-
-    // if (feature == PainterFeature.ObjectDetection) {
-    //   _initializeDetector(DetectionMode.stream);
-    //   _startLiveFeed(_imageStreamCallback);
-    // }
-
     setState(() {});
   }
 

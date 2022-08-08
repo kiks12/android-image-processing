@@ -30,9 +30,9 @@ class ObjectDetectorPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) async {
     final paint = Paint()
-      ..color = Colors.white
+      ..color = Colors.lightGreen
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = 3;
 
     for (var object in objects) {
       final ParagraphBuilder builder = ParagraphBuilder(
@@ -41,7 +41,12 @@ class ObjectDetectorPainter extends CustomPainter {
             fontSize: 16,
             textDirection: TextDirection.ltr),
       );
-      builder.pushStyle(ui.TextStyle(color: Colors.lightGreenAccent));
+      builder.pushStyle(
+        ui.TextStyle(
+          color: Colors.lightGreen,
+          fontFamily: 'Poppins',
+        ),
+      );
 
       double confidence = 0.0;
       String text = '';
