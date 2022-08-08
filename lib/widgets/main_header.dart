@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:android_image_processing/main.dart';
 import 'package:flutter/material.dart';
 
@@ -28,6 +30,10 @@ class _MainHeaderState extends State<MainHeader> {
     return text;
   }
 
+  void _exitApp() {
+    exit(0);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -43,11 +49,14 @@ class _MainHeaderState extends State<MainHeader> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              const Padding(
-                padding: EdgeInsets.only(left: 20),
-                child: Icon(
-                  Icons.arrow_back_ios,
-                  color: Colors.white,
+              Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: GestureDetector(
+                  onTap: _exitApp,
+                  child: const Icon(
+                    Icons.arrow_back_ios,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               Expanded(
