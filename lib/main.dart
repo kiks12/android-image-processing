@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:io' as io;
+import 'dart:math' as math;
 
 import 'package:android_image_processing/camera/camera_view.dart';
 import 'package:android_image_processing/painters/object_detector_painter.dart';
@@ -12,8 +13,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:image_pixels/image_pixels.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:tflite_flutter/tflite_flutter.dart' as tfl;
 // import 'package:matrix2d/matrix2d.dart';
 
 List<CameraDescription> cameras = [];
@@ -32,6 +35,22 @@ bool get isAndroid => !kIsWeb && Platform.isAndroid;
 bool get isWindows => !kIsWeb && Platform.isWindows;
 bool get isWeb => kIsWeb;
 /* */
+
+/* COLORS */
+List<String> classes = [
+  'Red',
+  'Green',
+  'Blue',
+  'Yellow',
+  'Orange',
+  'Pink',
+  'Purple',
+  'Brown',
+  'Grey',
+  'Black',
+  'White'
+];
+/* COLORS */
 
 enum PainterFeature { ObjectDetection, ColorRecognition, TextRecognition }
 
@@ -99,6 +118,14 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _changingCameraLens = false;
   /*  */
 
+  /* Image Pixels */
+  ImageProvider<Object>? _imageProvider;
+  /* Image Pixels */
+
+  /* Color Recognition Interpreter */
+  late tfl.Interpreter _colorInterPreter;
+  /* Color Recognition Interpreter */
+
   @override
   void initState() {
     super.initState();
@@ -111,12 +138,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _initializeTts();
     _initializeCameraController();
+    _initializeColorInterpreter();
   }
 
   @override
   void dispose() {
     super.dispose();
     _cameraController.dispose();
+  }
+
+  void _initializeColorInterpreter() async {
+    _colorInterPreter = await tfl.Interpreter.fromAsset(
+        'rml/color_recognition_model_8.0.tflite');
   }
 
   /* CAMERA CONTROLLER FUNCTIONS */
@@ -220,11 +253,35 @@ class _HomeScreenState extends State<HomeScreen> {
       _processCameraImage(image, _objectDetectionProcessImage);
     }
     if (_painterFeature == PainterFeature.ColorRecognition) {
-      // _processCameraImage(image, (InputImage image) {
-      // print(Offset(image.inputImageData!.size.width,
-      // image.inputImageData!.size.height));
-      // print(image.inputImageData!.size);
-      // });
+      if (localOffsetX == null && localOffsetY == null) return;
+
+      final WriteBuffer allBytes = WriteBuffer();
+      for (final Plane plane in image.planes) {
+        allBytes.putUint8List(plane.bytes);
+      }
+      final bytes = allBytes.done().buffer.asUint8List();
+
+      int index = (localOffsetY!.floor() * image.width) + localOffsetX!.floor();
+      final rgb = bytes
+          .getRange(index + 1, index + 4)
+          .map((e) => double.parse(e.toString()))
+          .toList();
+
+      List<List<double>> output = [
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+      ];
+
+      _colorInterPreter.run([rgb], output);
+
+      String prediction = '';
+      for (int i = 0; i < output.length; i++) {
+        final max = output[i]
+            .reduce((value, element) => value > element ? value : element);
+        prediction = classes[output[i].indexOf(max)];
+      }
+
+      flutterTts.speak('The color is $prediction');
+      setState(() {});
     }
   }
   /* CAMERA CONTROLLER FUNCTIONS */
@@ -274,8 +331,8 @@ class _HomeScreenState extends State<HomeScreen> {
       localOffsetY = null;
     }
 
-    localOffsetX = details.globalPosition.dx;
-    localOffsetY = details.globalPosition.dy;
+    localOffsetX = details.localPosition.dx;
+    localOffsetY = details.localPosition.dy;
     x = localOffsetX! - 20;
     y = localOffsetY! - 20;
     w = localOffsetX! + 20;
@@ -348,6 +405,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         customPaint2: _painterTwo(),
                         painterFeature: _painterFeature,
                       ),
+                ImagePixels(
+                  imageProvider: _imageProvider,
+                  builder: ((context, img) => Text('asfsd')),
+                ),
               ],
             ),
           ),
