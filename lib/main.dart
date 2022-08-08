@@ -246,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /* TEXT TO SPEECH FUNCTIONS */
 
   /* PAINTER MENU CONTROLLER FUNCTIONS */
-  void _setCustomPainterOne(PainterFeature feature) {
+  void _setPainterFeature(PainterFeature feature) {
     localOffsetX = null;
     localOffsetY = null;
     x = null;
@@ -257,19 +257,10 @@ class _HomeScreenState extends State<HomeScreen> {
     _customPaint2 = null;
     _painterFeature = feature;
 
-    if (feature == PainterFeature.ObjectDetection) {
-      _initializeDetector(DetectionMode.stream);
-      _startLiveFeed(_imageStreamCallback);
-    }
-
-    if (feature == PainterFeature.ColorRecognition) {
-      _startLiveFeed(_imageStreamCallback);
-      _customPaint2 = null;
-    }
-
-    if (feature == PainterFeature.TextRecognition) {
-      _stopLiveFeed();
-    }
+    // if (feature == PainterFeature.ObjectDetection) {
+    //   _initializeDetector(DetectionMode.stream);
+    //   _startLiveFeed(_imageStreamCallback);
+    // }
 
     setState(() {});
   }
@@ -310,16 +301,32 @@ class _HomeScreenState extends State<HomeScreen> {
   CustomPaint? _painter() {
     if (_painterFeature == PainterFeature.ObjectDetection) {
       _customPaint = _rectanglePainter();
-      // can add another canvas using customPainter2
     }
 
     if (_painterFeature == PainterFeature.ColorRecognition) {
       _customPaint = _rectanglePainter();
-      // can add another canvas using customPainter2
     }
 
-    setState(() {});
     return _customPaint;
+  }
+
+  CustomPaint? _painterTwo() {
+    if (_painterFeature == PainterFeature.ObjectDetection) {
+      _initializeDetector(DetectionMode.stream);
+      _startLiveFeed(_imageStreamCallback);
+    }
+
+    if (_painterFeature == PainterFeature.ColorRecognition) {
+      _customPaint2 = null;
+      _startLiveFeed(_imageStreamCallback);
+    }
+
+    if (_painterFeature == PainterFeature.TextRecognition) {
+      _customPaint2 = null;
+      _stopLiveFeed();
+    }
+
+    return _customPaint2;
   }
   /* PAINTER MENU CONTROLLER FUNCTIONS */
 
@@ -339,8 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     : CameraView(
                         controller: _cameraController,
                         customPaint: _painter(),
-                        // customPaint: _customPaint,
-                        customPaint2: _customPaint2,
+                        customPaint2: _painterTwo(),
                         painterFeature: _painterFeature,
                       ),
               ],
@@ -349,7 +355,7 @@ class _HomeScreenState extends State<HomeScreen> {
           MainHeader(painterFeature: _painterFeature),
           PainterController(
             painterFeature: _painterFeature,
-            setPainterFeature: _setCustomPainterOne,
+            setPainterFeature: _setPainterFeature,
           ),
         ],
       ),
