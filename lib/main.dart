@@ -150,6 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _initializeColorInterpreter() async {
     _colorInterPreter = await tfl.Interpreter.fromAsset(
         'rml/color_recognition_model_8.0.tflite');
+    setState(() {});
   }
 
   /* CAMERA CONTROLLER FUNCTIONS */
@@ -255,21 +256,37 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_painterFeature == PainterFeature.ColorRecognition) {
       if (localOffsetX == null && localOffsetY == null) return;
 
-      final WriteBuffer allBytes = WriteBuffer();
-      for (final Plane plane in image.planes) {
-        allBytes.putUint8List(plane.bytes);
-      }
-      final bytes = allBytes.done().buffer.asUint8List();
+      final rgb = [];
+      image.planes.forEach((element) {
+        if (element.bytesPerPixel == 2) {
+          final WriteBuffer bytes = WriteBuffer();
+          bytes.putUint8List(element.bytes);
+          var byte = bytes
+              .done()
+              .getUint8(((y!.floor() * image.width) + x!.round()) ~/ 2);
+          rgb.add(byte);
+        } else {
+          final WriteBuffer bytes = WriteBuffer();
+          bytes.putUint8List(element.bytes);
+          rgb.add(
+              bytes.done().getUint8((y!.floor() * image.width) + x!.round()));
+        }
+        // print(element.bytesPerRow);
+      });
 
-      int index = (localOffsetY!.floor() * image.width) + localOffsetX!.floor();
-      final rgb = bytes
-          .getRange(index + 1, index + 4)
-          .map((e) => double.parse(e.toString()))
-          .toList();
+      // print(rgb);
+
+      // int index = (localOffsetY!.floor() * image.width) + localOffsetX!.floor();
+      // final rgb = bytes
+      //     .getRange(index + 1, index + 4)
+      //     .map((e) => double.parse(e.toString()))
+      //     .toList();
 
       List<List<double>> output = [
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
       ];
+
+      // if (_colorInterPreter == null) return;
 
       _colorInterPreter.run([rgb], output);
 
@@ -280,6 +297,7 @@ class _HomeScreenState extends State<HomeScreen> {
         prediction = classes[output[i].indexOf(max)];
       }
 
+      print(prediction);
       flutterTts.speak('The color is $prediction');
       setState(() {});
     }
@@ -333,10 +351,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     localOffsetX = details.localPosition.dx;
     localOffsetY = details.localPosition.dy;
-    x = localOffsetX! - 20;
-    y = localOffsetY! - 20;
-    w = localOffsetX! + 20;
-    h = localOffsetY! + 20;
+    x = localOffsetX! - 5;
+    y = localOffsetY! - 5;
+    w = localOffsetX! + 5;
+    h = localOffsetY! + 5;
 
     setState(() {});
   }
