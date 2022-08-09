@@ -133,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _cameraController = CameraController(
       cameras[0],
       ResolutionPreset.max,
-      imageFormatGroup: ImageFormatGroup.yuv420,
+      imageFormatGroup: ImageFormatGroup.jpeg,
     );
 
     _initializeTts();
@@ -262,9 +262,10 @@ class _HomeScreenState extends State<HomeScreen> {
       final uvRowStride = image.planes[1].bytesPerRow;
       final uvPixelStride = image.planes[1].bytesPerPixel!;
 
-      final uvIndex = (uvPixelStride * (w!.floor()).floor() +
+      final uvIndex = (uvPixelStride * (localOffsetX!.floor()).floor() +
           uvRowStride * (localOffsetY!.floor() ~/ 2).floor());
-      final yIndex = (localOffsetY!.floor() * yRowStride + w!.floor());
+      final yIndex =
+          (localOffsetY!.floor() * yRowStride + localOffsetX!.floor());
 
       final y = image.planes[0].bytes[yIndex];
       final u = image.planes[1].bytes[uvIndex];
