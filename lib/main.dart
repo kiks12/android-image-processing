@@ -123,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /* Image Pixels */
 
   /* Color Recognition Interpreter */
-  late tfl.Interpreter _colorInterPreter;
+  tfl.Interpreter? _colorInterPreter;
   /* Color Recognition Interpreter */
 
   @override
@@ -257,38 +257,31 @@ class _HomeScreenState extends State<HomeScreen> {
       if (localOffsetX == null && localOffsetY == null) return;
 
       final rgb = [];
-      image.planes.forEach((element) {
-        if (element.bytesPerPixel == 2) {
-          final WriteBuffer bytes = WriteBuffer();
-          bytes.putUint8List(element.bytes);
-          var byte = bytes
-              .done()
-              .getUint8(((y!.floor() * image.width) + x!.round()) ~/ 2);
-          rgb.add(byte);
-        } else {
-          final WriteBuffer bytes = WriteBuffer();
-          bytes.putUint8List(element.bytes);
-          rgb.add(
-              bytes.done().getUint8((y!.floor() * image.width) + x!.round()));
-        }
-        // print(element.bytesPerRow);
-      });
 
-      // print(rgb);
+      final yRowStride = image.planes[0].bytesPerRow;
+      final uvRowStride = image.planes[1].bytesPerRow;
+      final uvPixelStride = image.planes[1].bytesPerPixel!;
 
-      // int index = (localOffsetY!.floor() * image.width) + localOffsetX!.floor();
-      // final rgb = bytes
-      //     .getRange(index + 1, index + 4)
-      //     .map((e) => double.parse(e.toString()))
-      //     .toList();
+      final uvIndex = (uvPixelStride * (w!.floor()).floor() +
+          uvRowStride * (localOffsetY!.floor() ~/ 2).floor());
+      final yIndex = (localOffsetY!.floor() * yRowStride + w!.floor());
+
+      final y = image.planes[0].bytes[yIndex];
+      final u = image.planes[1].bytes[uvIndex];
+      final v = image.planes[2].bytes[uvIndex];
+
+      rgb.add(yuv2rgb(y, u, v));
+
+      print(rgb);
 
       List<List<double>> output = [
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
       ];
 
-      // if (_colorInterPreter == null) return;
+      _colorInterPreter ??= await tfl.Interpreter.fromAsset(
+          'ml/color_recognition_model_8.0.tflite');
 
-      _colorInterPreter.run([rgb], output);
+      _colorInterPreter!.run(rgb, output);
 
       String prediction = '';
       for (int i = 0; i < output.length; i++) {
@@ -297,10 +290,32 @@ class _HomeScreenState extends State<HomeScreen> {
         prediction = classes[output[i].indexOf(max)];
       }
 
+      print(output);
       print(prediction);
-      flutterTts.speak('The color is $prediction');
+      // flutterTts.speak('The color is $prediction');
       setState(() {});
     }
+  }
+
+  static yuv2rgb(int y, int u, int v) {
+    // Convert yuv pixel to rgb
+    var r = (y + v * 1436 / 1024 - 179).round();
+    var g = (y - u * 46549 / 131072 + 44 - v * 93604 / 131072 + 91).round();
+    var b = (y + u * 1814 / 1024 - 227).round();
+
+    // Clipping RGB values to be inside boundaries [ 0 , 255 ]
+    r = r.clamp(0, 255);
+    g = g.clamp(0, 255);
+    b = b.clamp(0, 255);
+
+    // g = g >> 8;
+    // b = b << 8;
+
+    return [
+      double.parse(r.toString()),
+      double.parse(g.toString()),
+      double.parse(b.toString())
+    ];
   }
   /* CAMERA CONTROLLER FUNCTIONS */
 
