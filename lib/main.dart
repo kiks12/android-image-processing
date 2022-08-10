@@ -10,6 +10,7 @@ import 'package:android_image_processing/widgets/painter_controller.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
@@ -133,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _cameraController = CameraController(
       cameras[0],
       ResolutionPreset.max,
-      imageFormatGroup: ImageFormatGroup.jpeg,
+      imageFormatGroup: ImageFormatGroup.yuv420,
     );
 
     _initializeTts();
@@ -249,29 +250,40 @@ class _HomeScreenState extends State<HomeScreen> {
     onImage(inputImage);
   }
 
+  void _onScreenClickProxy(TapDownDetails details, BoxConstraints constraints) {
+    localOffsetX = details.localPosition.dx / constraints.maxWidth;
+    localOffsetY = details.localPosition.dy / constraints.maxHeight;
+    setState(() {});
+  }
+
   void _imageStreamCallback(CameraImage image) async {
     if (_painterFeature == PainterFeature.ObjectDetection) {
       _processCameraImage(image, _objectDetectionProcessImage);
     }
     if (_painterFeature == PainterFeature.ColorRecognition) {
       if (localOffsetX == null && localOffsetY == null) return;
-
       final rgb = [];
 
-      final yRowStride = image.planes[0].bytesPerRow;
+      // final size = MediaQuery.of(context).size;
+      // var scale = size.aspectRatio * _cameraController.value.aspectRatio;
+
+      final xOffsetCenter = (localOffsetX!).round();
+      final yOffsetCenter = (localOffsetY!).round();
+
       final uvRowStride = image.planes[1].bytesPerRow;
       final uvPixelStride = image.planes[1].bytesPerPixel!;
 
-      final uvIndex = (uvPixelStride * (localOffsetX!.floor()).floor() +
-          uvRowStride * (localOffsetY!.floor() ~/ 2).floor());
-      final yIndex =
-          (localOffsetY!.floor() * yRowStride + localOffsetX!.floor());
+      final uvIndexCenter = ((uvPixelStride * xOffsetCenter / 2).floor() +
+              (uvRowStride * yOffsetCenter / 2).floor())
+          .round();
+      final yIndexCenter =
+          ((yOffsetCenter * (image.width) + xOffsetCenter)).floor();
 
-      final y = image.planes[0].bytes[yIndex];
-      final u = image.planes[1].bytes[uvIndex];
-      final v = image.planes[2].bytes[uvIndex];
+      final ypc = image.planes[0].bytes[yIndexCenter];
+      final upc = image.planes[1].bytes[uvIndexCenter];
+      final vpc = image.planes[2].bytes[uvIndexCenter];
 
-      rgb.add(yuv2rgb(y, u, v));
+      rgb.add(yuv2rgb(ypc, upc, vpc));
 
       print(rgb);
 
@@ -291,7 +303,7 @@ class _HomeScreenState extends State<HomeScreen> {
         prediction = classes[output[i].indexOf(max)];
       }
 
-      print(output);
+      // print(output);
       print(prediction);
       // flutterTts.speak('The color is $prediction');
       setState(() {});
@@ -300,17 +312,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static yuv2rgb(int y, int u, int v) {
     // Convert yuv pixel to rgb
-    var r = (y + v * 1436 / 1024 - 179).round();
-    var g = (y - u * 46549 / 131072 + 44 - v * 93604 / 131072 + 91).round();
-    var b = (y + u * 1814 / 1024 - 227).round();
-
-    // Clipping RGB values to be inside boundaries [ 0 , 255 ]
-    r = r.clamp(0, 255);
-    g = g.clamp(0, 255);
-    b = b.clamp(0, 255);
-
-    // g = g >> 8;
-    // b = b << 8;
+    int r = (y + v * 1436 / 1024 - 179).round().clamp(0, 255);
+    int g = (y - u * 46549 / 131072 + 44 - v * 93604 / 131072 + 91)
+        .round()
+        .clamp(0, 255);
+    int b = (y + u * 1814 / 1024 - 227).round().clamp(0, 255);
 
     return [
       double.parse(r.toString()),
@@ -367,10 +373,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     localOffsetX = details.localPosition.dx;
     localOffsetY = details.localPosition.dy;
-    x = localOffsetX! - 5;
-    y = localOffsetY! - 5;
-    w = localOffsetX! + 5;
-    h = localOffsetY! + 5;
+    x = localOffsetX! - 10;
+    y = localOffsetY! - 10;
+    w = localOffsetX! + 10;
+    h = localOffsetY! + 10;
 
     setState(() {});
   }
@@ -434,15 +440,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: CircularProgressIndicator(),
                       )
                     : CameraView(
+                        onScreenClick: _onScreenClickProxy,
                         controller: _cameraController,
                         customPaint: _painter(),
                         customPaint2: _painterTwo(),
                         painterFeature: _painterFeature,
                       ),
-                ImagePixels(
-                  imageProvider: _imageProvider,
-                  builder: ((context, img) => Text('asfsd')),
-                ),
               ],
             ),
           ),

@@ -1,10 +1,8 @@
 import 'dart:io';
 import 'package:android_image_processing/screens/display_text_screen.dart';
 import 'package:camera/camera.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image_cropper/image_cropper.dart';
 
 import '../main.dart';
@@ -21,6 +19,7 @@ class CameraView extends StatefulWidget {
     this.onScreenModeChanged,
     required this.painterFeature,
     required this.controller,
+    required this.onScreenClick,
   }) : super(key: key);
 
   final CustomPaint? customPaint;
@@ -30,6 +29,8 @@ class CameraView extends StatefulWidget {
   final Function(ScreenMode mode)? onScreenModeChanged;
   final PainterFeature painterFeature;
   final CameraController controller;
+  final void Function(TapDownDetails details, BoxConstraints constraints)
+      onScreenClick;
 
   @override
   _CameraViewState createState() => _CameraViewState();
@@ -177,7 +178,22 @@ class _CameraViewState extends State<CameraView> {
                   ? const Center(
                       child: Text('Changing camera lens'),
                     )
-                  : CameraPreview(widget.controller),
+                  : CameraPreview(
+                      widget.controller,
+                      child: LayoutBuilder(builder: ((context, constraints) {
+                        return GestureDetector(
+                          onTapDown: (TapDownDetails details) {
+                            widget.onScreenClick(details, constraints);
+                            Offset offset = Offset(
+                              details.localPosition.dx / constraints.maxWidth,
+                              details.localPosition.dy / constraints.maxHeight,
+                            );
+                            widget.controller.setFocusPoint(offset);
+                            widget.controller.setExposurePoint(offset);
+                          },
+                        );
+                      })),
+                    ),
             ),
           ),
           Positioned(
