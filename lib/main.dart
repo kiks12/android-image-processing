@@ -124,6 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /* Image Pixels */
 
   /* Color Recognition Interpreter */
+  Color _color = Color.fromARGB(1, 1, 1, 1);
   tfl.Interpreter? _colorInterPreter;
   /* Color Recognition Interpreter */
 
@@ -150,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _initializeColorInterpreter() async {
     _colorInterPreter = await tfl.Interpreter.fromAsset(
-        'rml/color_recognition_model_8.0.tflite');
+        'ml/color_recognition_model_8.0.2.tflite');
     setState(() {});
   }
 
@@ -250,9 +251,14 @@ class _HomeScreenState extends State<HomeScreen> {
     onImage(inputImage);
   }
 
-  void _onScreenClickProxy(TapDownDetails details, BoxConstraints constraints) {
-    localOffsetX = details.localPosition.dx / constraints.maxWidth;
-    localOffsetY = details.localPosition.dy / constraints.maxHeight;
+  void _onScreenClickProxy(
+      TapDownDetails details, BoxConstraints constraints) async {
+    localOffsetX = details.globalPosition.dx;
+    localOffsetY = details.globalPosition.dy;
+    x = localOffsetX! - 15;
+    y = localOffsetY! - 15;
+    w = localOffsetX! + 15;
+    h = localOffsetY! + 15;
     setState(() {});
   }
 
@@ -264,35 +270,38 @@ class _HomeScreenState extends State<HomeScreen> {
       if (localOffsetX == null && localOffsetY == null) return;
       final rgb = [];
 
-      // final size = MediaQuery.of(context).size;
-      // var scale = size.aspectRatio * _cameraController.value.aspectRatio;
+      final size = MediaQuery.of(context).size;
+      var scale = size.aspectRatio * _cameraController.value.aspectRatio;
 
-      final xOffsetCenter = (localOffsetX!).round();
-      final yOffsetCenter = (localOffsetY!).round();
+      // print(size.aspectRatio);
+      // print(_cameraController.value.aspectRatio);
 
-      final uvRowStride = image.planes[1].bytesPerRow;
+      final xOffsetCenter = ((localOffsetX!).round());
+      final yOffsetCenter = ((localOffsetY!).round());
+
+      // final uvRowStride = image.planes[1].bytesPerRow;
       final uvPixelStride = image.planes[1].bytesPerPixel!;
 
       final uvIndexCenter = ((uvPixelStride * xOffsetCenter / 2).floor() +
-              (uvRowStride * yOffsetCenter / 2).floor())
+              (image.width * yOffsetCenter / 2).floor())
           .round();
       final yIndexCenter =
           ((yOffsetCenter * (image.width) + xOffsetCenter)).floor();
 
-      final ypc = image.planes[0].bytes[yIndexCenter];
-      final upc = image.planes[1].bytes[uvIndexCenter];
-      final vpc = image.planes[2].bytes[uvIndexCenter];
+      final ypc = image.planes[0].bytes[(yIndexCenter).round()];
+      final upc = image.planes[1].bytes[(uvIndexCenter).round()];
+      final vpc = image.planes[2].bytes[(uvIndexCenter).round()];
 
       rgb.add(yuv2rgb(ypc, upc, vpc));
 
-      print(rgb);
+      // print(rgb);
 
       List<List<double>> output = [
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
       ];
 
       _colorInterPreter ??= await tfl.Interpreter.fromAsset(
-          'ml/color_recognition_model_8.0.tflite');
+          'ml/color_recognition_model_8.0.2.tflite');
 
       _colorInterPreter!.run(rgb, output);
 
@@ -302,6 +311,13 @@ class _HomeScreenState extends State<HomeScreen> {
             .reduce((value, element) => value > element ? value : element);
         prediction = classes[output[i].indexOf(max)];
       }
+
+      _color = Color.fromARGB(
+        255,
+        rgb[0][0].floor(),
+        rgb[0][1].floor(),
+        rgb[0][2].floor(),
+      );
 
       // print(output);
       print(prediction);
@@ -397,10 +413,12 @@ class _HomeScreenState extends State<HomeScreen> {
   CustomPaint? _painter() {
     if (_painterFeature == PainterFeature.ObjectDetection) {
       _customPaint = _rectanglePainter();
+      _customPaint = null;
     }
 
     if (_painterFeature == PainterFeature.ColorRecognition) {
-      _customPaint = _rectanglePainter();
+      // _customPaint = _rectanglePainter();
+      _customPaint = null;
     }
 
     return _customPaint;
@@ -415,6 +433,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_painterFeature == PainterFeature.ColorRecognition) {
       _customPaint2 = null;
       _startLiveFeed(_imageStreamCallback);
+      // _stopLiveFeed();
     }
 
     if (_painterFeature == PainterFeature.TextRecognition) {
@@ -446,6 +465,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         customPaint2: _painterTwo(),
                         painterFeature: _painterFeature,
                       ),
+                Positioned.fromRect(
+                  rect: localOffsetX != null && localOffsetY != null
+                      ? Rect.fromPoints(Offset(x!, y!), Offset(w!, h!))
+                      : Rect.zero,
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: _color,
+                        border: Border.all(
+                          width: 1.0,
+                          color: _color,
+                          style: BorderStyle.solid,
+                        )),
+                  ),
+                ),
               ],
             ),
           ),
@@ -476,6 +509,7 @@ class _HomeScreenState extends State<HomeScreen> {
       h,
     );
     _customPaint2 = CustomPaint(painter: painter);
+
     _isBusy = false;
     if (mounted) {
       setState(() {});

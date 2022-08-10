@@ -183,11 +183,11 @@ class _CameraViewState extends State<CameraView> {
                       child: LayoutBuilder(builder: ((context, constraints) {
                         return GestureDetector(
                           onTapDown: (TapDownDetails details) {
-                            widget.onScreenClick(details, constraints);
                             Offset offset = Offset(
                               details.localPosition.dx / constraints.maxWidth,
                               details.localPosition.dy / constraints.maxHeight,
                             );
+                            widget.onScreenClick(details, constraints);
                             widget.controller.setFocusPoint(offset);
                             widget.controller.setExposurePoint(offset);
                           },
@@ -231,30 +231,6 @@ class _CameraViewState extends State<CameraView> {
     );
   }
 
-  // Future _startLiveFeed() async {
-  //   widget.controller.initialize().then((_) {
-  //     if (!mounted) {
-  //       return;
-  //     }
-  //     widget.controller.getMinZoomLevel().then((value) {
-  //       zoomLevel = value;
-  //       minZoomLevel = value;
-  //     });
-  //     widget.controller.getMaxZoomLevel().then((value) {
-  //       maxZoomLevel = value;
-  //     });
-  //     if (widget.painterFeature != PainterFeature.TextRecognition) {
-  //       widget.controller.startImageStream(_processCameraImage);
-  //     }
-  //     setState(() {});
-  //   });
-  // }
-
-  // Future _stopLiveFeed() async {
-  //   await widget.controller.stopImageStream();
-  //   await widget.controller.dispose();
-  // }
-
   Future _switchLiveCamera() async {
     setState(() => _changingCameraLens = true);
     _cameraIndex = (_cameraIndex + 1) % cameras.length;
@@ -263,46 +239,4 @@ class _CameraViewState extends State<CameraView> {
     // await _startLiveFeed();
     setState(() => _changingCameraLens = false);
   }
-
-  // Future _processCameraImage(CameraImage image) async {
-  //   final WriteBuffer allBytes = WriteBuffer();
-  //   for (final Plane plane in image.planes) {
-  //     allBytes.putUint8List(plane.bytes);
-  //   }
-  //   final bytes = allBytes.done().buffer.asUint8List();
-
-  //   final Size imageSize =
-  //       Size(image.width.toDouble(), image.height.toDouble());
-
-  //   final camera = cameras[_cameraIndex];
-  //   final imageRotation =
-  //       InputImageRotationValue.fromRawValue(camera.sensorOrientation);
-  //   if (imageRotation == null) return;
-
-  //   final inputImageFormat =
-  //       InputImageFormatValue.fromRawValue(image.format.raw);
-  //   if (inputImageFormat == null) return;
-
-  //   final planeData = image.planes.map(
-  //     (Plane plane) {
-  //       return InputImagePlaneMetadata(
-  //         bytesPerRow: plane.bytesPerRow,
-  //         height: plane.height,
-  //         width: plane.width,
-  //       );
-  //     },
-  //   ).toList();
-
-  //   final inputImageData = InputImageData(
-  //     size: imageSize,
-  //     imageRotation: imageRotation,
-  //     inputImageFormat: inputImageFormat,
-  //     planeData: planeData,
-  //   );
-
-  //   final inputImage =
-  //       InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
-
-  //   widget.onImage(inputImage);
-  // }
 }
