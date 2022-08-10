@@ -117,6 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
   CameraLensDirection _initialDirection = CameraLensDirection.back;
   double _zoomLevel = 0.0, _minZoomLevel = 0.0, _maxZoomLevel = 0.0;
   bool _changingCameraLens = false;
+  GlobalKey _cameraKey = GlobalKey();
   /*  */
 
   /* Image Pixels */
@@ -269,32 +270,43 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_painterFeature == PainterFeature.ColorRecognition) {
       if (localOffsetX == null && localOffsetY == null) return;
       final rgb = [];
-
       final size = MediaQuery.of(context).size;
       var scale = size.aspectRatio * _cameraController.value.aspectRatio;
+      RenderBox box =
+          _cameraKey.currentContext!.findRenderObject() as RenderBox;
+      Offset localPosition = box.globalToLocal(
+          Offset(localOffsetX! * 1 / scale, localOffsetY! * 1 / scale));
 
-      // print(size.aspectRatio);
+      // localPosition = localPosition.scale(1 / scale, 1 / scale);
+
+      // print('Scale: ${scale}');
+      // print('Screen Height: ${size.height}');
+      // print('Screen Width: ${size.width}');
+      // print('Height: ${_cameraController.value.previewSize}');
       // print(_cameraController.value.aspectRatio);
 
-      final xOffsetCenter = ((localOffsetX!).round());
-      final yOffsetCenter = ((localOffsetY!).round());
+      final xOffsetCenter = ((localPosition.dx).floor());
+      final yOffsetCenter = ((localPosition.dy).floor());
+
+      // print(xOffsetCenter * 0.81);
+      // print(yOffsetCenter);
 
       // final uvRowStride = image.planes[1].bytesPerRow;
-      final uvPixelStride = image.planes[1].bytesPerPixel!;
+      // final uvPixelStride = image.planes[1].bytesPerPixel!;
 
-      final uvIndexCenter = ((uvPixelStride * xOffsetCenter / 2).floor() +
+      final uvIndexCenter = ((image.width * xOffsetCenter / 2).floor() +
               (image.width * yOffsetCenter / 2).floor())
-          .round();
+          .floor();
       final yIndexCenter =
           ((yOffsetCenter * (image.width) + xOffsetCenter)).floor();
 
-      final ypc = image.planes[0].bytes[(yIndexCenter).round()];
-      final upc = image.planes[1].bytes[(uvIndexCenter).round()];
-      final vpc = image.planes[2].bytes[(uvIndexCenter).round()];
+      final ypc = image.planes[0].bytes[(yIndexCenter).floor()];
+      final upc = image.planes[1].bytes[(uvIndexCenter).floor()];
+      final vpc = image.planes[2].bytes[(uvIndexCenter).floor()];
 
       rgb.add(yuv2rgb(ypc, upc, vpc));
 
-      // print(rgb);
+      print(rgb);
 
       List<List<double>> output = [
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -461,6 +473,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     : CameraView(
                         onScreenClick: _onScreenClickProxy,
                         controller: _cameraController,
+                        cameraKey: _cameraKey,
                         customPaint: _painter(),
                         customPaint2: _painterTwo(),
                         painterFeature: _painterFeature,

@@ -20,6 +20,7 @@ class CameraView extends StatefulWidget {
     required this.painterFeature,
     required this.controller,
     required this.onScreenClick,
+    required this.cameraKey,
   }) : super(key: key);
 
   final CustomPaint? customPaint;
@@ -31,6 +32,7 @@ class CameraView extends StatefulWidget {
   final CameraController controller;
   final void Function(TapDownDetails details, BoxConstraints constraints)
       onScreenClick;
+  final GlobalKey cameraKey;
 
   @override
   _CameraViewState createState() => _CameraViewState();
@@ -180,6 +182,7 @@ class _CameraViewState extends State<CameraView> {
                     )
                   : CameraPreview(
                       widget.controller,
+                      key: widget.cameraKey,
                       child: LayoutBuilder(builder: ((context, constraints) {
                         return GestureDetector(
                           onTapDown: (TapDownDetails details) {
