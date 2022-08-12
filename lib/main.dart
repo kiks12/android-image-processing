@@ -274,28 +274,59 @@ class _HomeScreenState extends State<HomeScreen> {
       final size = MediaQuery.of(context).size;
       var scale = size.aspectRatio * _cameraController.value.aspectRatio;
 
+      final RenderBox box = _cameraKey.currentContext?.findRenderObject() as RenderBox;
+      final Offset local = box.globalToLocal(Offset(localOffsetX!, localOffsetY!));
+
+      //print('Localized Offsets: ${box.globalToLocal(Offset(localOffsetX!, localOffsetY!))}');
+      print('Size: ${box.size}');
       //print('Scale: ${1/scale}');
       //print('Screen Height: ${size.height}');
       //print('Screen Width: ${size.width}');
       //print('Preview Size: ${_cameraController.value.previewSize!.width}');
       //print(_cameraController.value.aspectRatio);
       //print(cameras[_cameraIndex].sensorOrientation);
-      print('Image Width: ${image.width}');
-      print('Image Height: ${image.height}');
+      //print('Image Width: ${image.width}');
+      //print('Image Height: ${image.height}');
 
-      final xOffsetCenter = (localOffsetX!.floor());
-      final yOffsetCenter = (localOffsetY!.floor());
+      final xOffsetCenter = (local.dx * 1.83);
+      final yOffsetCenter = (local.dy * 1.83);
+      //final xOffsetCenter = (localOffsetY!.floor());
+      //final yOffsetCenter = (localOffsetX!.floor());
+
+      print(xOffsetCenter);
+      print(yOffsetCenter);
 
       final yRowStride = image.planes[0].bytesPerRow;
       final uvRowStride = image.planes[1].bytesPerRow;
       final uvPixelStride = image.planes[1].bytesPerPixel!;
 
-      final uvIndexCenter = (168.85*yRowStride) + ((((118.65*2) + (image.width)) * yOffsetCenter) ~/ 2) + (xOffsetCenter ~/ 2);
-      final yIndexCenter = (337.7*yRowStride) + ((((237.3*2)) + image.width) * yOffsetCenter) + (xOffsetCenter);
+      //final yScaleOffset = (image.height - size.width) ~/ 2;
+      //final xScaleOffset = (image.width - size.height) ~/ 2;
+
+      //final yToUVRatio = image.planes[0].bytes.length / image.planes[1].bytes.length;
+      //final yToUVStrideRatio = yRowStride / uvRowStride;
+
+      //print('Local Offset X: $localOffsetX');
+      //print('Local Offset Y: $localOffsetY');
+      //print('Y Scale Offset: $yScaleOffset');
+      //print('X Scale Offset: $xScaleOffset');
+      //print('Y Row Stride: $yRowStride');
+      //print('UV Row Stride: $uvRowStride');
+      //print('Y Bytes: ${image.planes[0].bytes.length}');
+      //print('UV Bytes: ${image.planes[1].bytes.length}');
+      //print('Y Bytes Per Pixel: ${image.planes[0].bytesPerPixel}');
+      //print('UV Bytes Per Pixel: ${image.planes[1].bytesPerPixel}');
+
+      //final uvIndexCenter = (uvRowStride*yScaleOffset / yToUVStrideRatio) + (yOffsetCenter * uvRowStride) +
+       //   (xScaleOffset+xOffsetCenter / yToUVStrideRatio);
+      //final yIndexCenter = (yRowStride*yScaleOffset) + (yOffsetCenter * yRowStride) + (xScaleOffset+xOffsetCenter);
+
+      final uvIndexCenter = (uvPixelStride * xOffsetCenter/2) + (uvRowStride * yOffsetCenter/2);
+      final yIndexCenter = (yRowStride * yOffsetCenter) + xOffsetCenter;
 
       final ypc = image.planes[0].bytes[yIndexCenter.floor()];
-      final upc = image.planes[1].bytes[uvIndexCenter.floor()];
-      final vpc = image.planes[2].bytes[uvIndexCenter.floor()];
+      final upc = image.planes[1].bytes[(uvIndexCenter).floor()];
+      final vpc = image.planes[2].bytes[(uvIndexCenter).floor()];
 
       rgb.add(yuv2rgb(ypc, upc, vpc));
 
@@ -456,7 +487,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: <Widget>[
           GestureDetector(
-            onTapDown: _onScreenClick,
+//            onTapDown: _onScreenClick,
             child: Stack(
               children: [
                 _isLoading

@@ -84,7 +84,7 @@ class _CameraViewState extends State<CameraView> {
           toolbarColor: Colors.transparent,
           dimmedLayerColor: const Color.fromARGB(133, 54, 54, 54),
           cropFrameColor: Colors.white,
-          cropGridColor: const Color.fromARGB(145, 255, 255, 255),
+          cropGridColor: const Color.fromARGB(100, 255, 255, 255),
           cropGridStrokeWidth: 1,
           lockAspectRatio: false,
         )
@@ -174,7 +174,7 @@ class _CameraViewState extends State<CameraView> {
         fit: StackFit.expand,
         children: <Widget>[
           Transform.scale(
-            scale: scale,
+            scale: 1,
             alignment: Alignment.center,
             child: Center(
               child: _changingCameraLens
