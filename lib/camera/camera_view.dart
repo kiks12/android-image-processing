@@ -175,6 +175,7 @@ class _CameraViewState extends State<CameraView> {
         children: <Widget>[
           Transform.scale(
             scale: scale,
+            alignment: Alignment.center,
             child: Center(
               child: _changingCameraLens
                   ? const Center(

@@ -138,6 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ResolutionPreset.max,
       imageFormatGroup: ImageFormatGroup.yuv420,
     );
+    _cameraController.lockCaptureOrientation();
 
     _initializeTts();
     _initializeCameraController();
@@ -272,37 +273,29 @@ class _HomeScreenState extends State<HomeScreen> {
       final rgb = [];
       final size = MediaQuery.of(context).size;
       var scale = size.aspectRatio * _cameraController.value.aspectRatio;
-      RenderBox box =
-          _cameraKey.currentContext!.findRenderObject() as RenderBox;
-      Offset localPosition = box.globalToLocal(
-          Offset(localOffsetX! * 1 / scale, localOffsetY! * 1 / scale));
 
-      // localPosition = localPosition.scale(1 / scale, 1 / scale);
+      //print('Scale: ${1/scale}');
+      //print('Screen Height: ${size.height}');
+      //print('Screen Width: ${size.width}');
+      //print('Preview Size: ${_cameraController.value.previewSize!.width}');
+      //print(_cameraController.value.aspectRatio);
+      //print(cameras[_cameraIndex].sensorOrientation);
+      print('Image Width: ${image.width}');
+      print('Image Height: ${image.height}');
 
-      // print('Scale: ${scale}');
-      // print('Screen Height: ${size.height}');
-      // print('Screen Width: ${size.width}');
-      // print('Height: ${_cameraController.value.previewSize}');
-      // print(_cameraController.value.aspectRatio);
+      final xOffsetCenter = (localOffsetX!.floor());
+      final yOffsetCenter = (localOffsetY!.floor());
 
-      final xOffsetCenter = ((localPosition.dx).floor());
-      final yOffsetCenter = ((localPosition.dy).floor());
+      final yRowStride = image.planes[0].bytesPerRow;
+      final uvRowStride = image.planes[1].bytesPerRow;
+      final uvPixelStride = image.planes[1].bytesPerPixel!;
 
-      // print(xOffsetCenter * 0.81);
-      // print(yOffsetCenter);
+      final uvIndexCenter = (168.85*yRowStride) + ((((118.65*2) + (image.width)) * yOffsetCenter) ~/ 2) + (xOffsetCenter ~/ 2);
+      final yIndexCenter = (337.7*yRowStride) + ((((237.3*2)) + image.width) * yOffsetCenter) + (xOffsetCenter);
 
-      // final uvRowStride = image.planes[1].bytesPerRow;
-      // final uvPixelStride = image.planes[1].bytesPerPixel!;
-
-      final uvIndexCenter = ((image.width * xOffsetCenter / 2).floor() +
-              (image.width * yOffsetCenter / 2).floor())
-          .floor();
-      final yIndexCenter =
-          ((yOffsetCenter * (image.width) + xOffsetCenter)).floor();
-
-      final ypc = image.planes[0].bytes[(yIndexCenter).floor()];
-      final upc = image.planes[1].bytes[(uvIndexCenter).floor()];
-      final vpc = image.planes[2].bytes[(uvIndexCenter).floor()];
+      final ypc = image.planes[0].bytes[yIndexCenter.floor()];
+      final upc = image.planes[1].bytes[uvIndexCenter.floor()];
+      final vpc = image.planes[2].bytes[uvIndexCenter.floor()];
 
       rgb.add(yuv2rgb(ypc, upc, vpc));
 
