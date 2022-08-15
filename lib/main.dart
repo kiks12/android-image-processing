@@ -10,15 +10,13 @@ import 'package:android_image_processing/widgets/painter_controller.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
-import 'package:image_pixels/image_pixels.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:tflite_flutter/tflite_flutter.dart' as tfl;
-// import 'package:matrix2d/matrix2d.dart';
+import 'package:image/image.dart' as imglib;
 
 List<CameraDescription> cameras = [];
 
@@ -254,13 +252,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onScreenClickProxy(
-      TapDownDetails details, BoxConstraints constraints) async {
-    localOffsetX = details.globalPosition.dx;
-    localOffsetY = details.globalPosition.dy;
-    x = localOffsetX! - 15;
-    y = localOffsetY! - 15;
-    w = localOffsetX! + 15;
-    h = localOffsetY! + 15;
+      TapDownDetails details, BoxConstraints constraints, Offset offset) async {
+    localOffsetX = offset.dy;
+    localOffsetY = offset.dx;
+    x = details.globalPosition.dx - 15;
+    y = details.globalPosition.dy - 15;
+    w = details.globalPosition.dx + 15;
+    h = details.globalPosition.dy + 15;
     setState(() {});
   }
 
@@ -271,66 +269,24 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_painterFeature == PainterFeature.ColorRecognition) {
       if (localOffsetX == null && localOffsetY == null) return;
       final rgb = [];
-      final size = MediaQuery.of(context).size;
-      var scale = size.aspectRatio * _cameraController.value.aspectRatio;
-
-      final RenderBox box = _cameraKey.currentContext?.findRenderObject() as RenderBox;
-      final Offset local = box.globalToLocal(Offset(localOffsetX!, localOffsetY!));
-
-      //print('Localized Offsets: ${box.globalToLocal(Offset(localOffsetX!, localOffsetY!))}');
-      print('Size: ${box.size}');
-      //print('Scale: ${1/scale}');
-      //print('Screen Height: ${size.height}');
-      //print('Screen Width: ${size.width}');
-      //print('Preview Size: ${_cameraController.value.previewSize!.width}');
-      //print(_cameraController.value.aspectRatio);
-      //print(cameras[_cameraIndex].sensorOrientation);
-      //print('Image Width: ${image.width}');
-      //print('Image Height: ${image.height}');
-
-      final xOffsetCenter = (local.dx * 1.83);
-      final yOffsetCenter = (local.dy * 1.83);
-      //final xOffsetCenter = (localOffsetY!.floor());
-      //final yOffsetCenter = (localOffsetX!.floor());
-
-      print(xOffsetCenter);
-      print(yOffsetCenter);
+      final xOffset = ((image.width * localOffsetX!)).floor();
+      final yOffset = (image.height - (image.height * localOffsetY!)).floor();
 
       final yRowStride = image.planes[0].bytesPerRow;
       final uvRowStride = image.planes[1].bytesPerRow;
       final uvPixelStride = image.planes[1].bytesPerPixel!;
 
-      //final yScaleOffset = (image.height - size.width) ~/ 2;
-      //final xScaleOffset = (image.width - size.height) ~/ 2;
+      final uvIndexCenter = (uvPixelStride * (xOffset / 2).floor()) +
+          (uvRowStride * (yOffset / 2).floor());
+      final yIndexCenter = yRowStride * yOffset + xOffset;
 
-      //final yToUVRatio = image.planes[0].bytes.length / image.planes[1].bytes.length;
-      //final yToUVStrideRatio = yRowStride / uvRowStride;
-
-      //print('Local Offset X: $localOffsetX');
-      //print('Local Offset Y: $localOffsetY');
-      //print('Y Scale Offset: $yScaleOffset');
-      //print('X Scale Offset: $xScaleOffset');
-      //print('Y Row Stride: $yRowStride');
-      //print('UV Row Stride: $uvRowStride');
-      //print('Y Bytes: ${image.planes[0].bytes.length}');
-      //print('UV Bytes: ${image.planes[1].bytes.length}');
-      //print('Y Bytes Per Pixel: ${image.planes[0].bytesPerPixel}');
-      //print('UV Bytes Per Pixel: ${image.planes[1].bytesPerPixel}');
-
-      //final uvIndexCenter = (uvRowStride*yScaleOffset / yToUVStrideRatio) + (yOffsetCenter * uvRowStride) +
-       //   (xScaleOffset+xOffsetCenter / yToUVStrideRatio);
-      //final yIndexCenter = (yRowStride*yScaleOffset) + (yOffsetCenter * yRowStride) + (xScaleOffset+xOffsetCenter);
-
-      final uvIndexCenter = (uvPixelStride * xOffsetCenter/2) + (uvRowStride * yOffsetCenter/2);
-      final yIndexCenter = (yRowStride * yOffsetCenter) + xOffsetCenter;
-
-      final ypc = image.planes[0].bytes[yIndexCenter.floor()];
-      final upc = image.planes[1].bytes[(uvIndexCenter).floor()];
-      final vpc = image.planes[2].bytes[(uvIndexCenter).floor()];
+      final ypc = image.planes[0].bytes[yIndexCenter];
+      final upc = image.planes[1].bytes[uvIndexCenter];
+      final vpc = image.planes[2].bytes[uvIndexCenter];
 
       rgb.add(yuv2rgb(ypc, upc, vpc));
 
-      print(rgb);
+      // print(rgb);
 
       List<List<double>> output = [
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -356,8 +312,8 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       // print(output);
-      print(prediction);
-      // flutterTts.speak('The color is $prediction');
+      // print(prediction);
+      flutterTts.speak('The color is $prediction');
       setState(() {});
     }
   }

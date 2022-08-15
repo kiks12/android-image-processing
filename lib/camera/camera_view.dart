@@ -30,7 +30,8 @@ class CameraView extends StatefulWidget {
   final Function(ScreenMode mode)? onScreenModeChanged;
   final PainterFeature painterFeature;
   final CameraController controller;
-  final void Function(TapDownDetails details, BoxConstraints constraints)
+  final void Function(
+          TapDownDetails details, BoxConstraints constraints, Offset offset)
       onScreenClick;
   final GlobalKey cameraKey;
 
@@ -174,7 +175,7 @@ class _CameraViewState extends State<CameraView> {
         fit: StackFit.expand,
         children: <Widget>[
           Transform.scale(
-            scale: 1,
+            scale: scale,
             alignment: Alignment.center,
             child: Center(
               child: _changingCameraLens
@@ -191,7 +192,7 @@ class _CameraViewState extends State<CameraView> {
                               details.localPosition.dx / constraints.maxWidth,
                               details.localPosition.dy / constraints.maxHeight,
                             );
-                            widget.onScreenClick(details, constraints);
+                            widget.onScreenClick(details, constraints, offset);
                             widget.controller.setFocusPoint(offset);
                             widget.controller.setExposurePoint(offset);
                           },
