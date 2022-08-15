@@ -83,7 +83,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   /* UI Variables */
-  bool _isLoading = false;
+  final bool _isLoading = false;
   /* UI Variables */
 
   /* Custom Paint Variables */
@@ -110,9 +110,9 @@ class _HomeScreenState extends State<HomeScreen> {
   /* Camera Controller Variables */
   late CameraController _cameraController;
   int _cameraIndex = 0;
-  CameraLensDirection _initialDirection = CameraLensDirection.back;
+  final CameraLensDirection _initialDirection = CameraLensDirection.back;
   double _zoomLevel = 0.0, _minZoomLevel = 0.0, _maxZoomLevel = 0.0;
-  bool _changingCameraLens = false;
+  final bool _changingCameraLens = false;
   /*  */
 
   /* Color Recognition Interpreter */
