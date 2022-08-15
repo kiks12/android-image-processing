@@ -16,13 +16,21 @@ class PainterController extends StatefulWidget {
 }
 
 class PainterControllerState extends State<PainterController> {
+  final _containersPositioning = {
+    'Object': [],
+    'Color': [],
+    'Text': [],
+  };
+
   Widget _container(String text, PainterFeature feature) {
-    return Container(
+    return AnimatedContainer(
+      curve: Curves.easeOutExpo,
+      duration: const Duration(seconds: 1),
       decoration: BoxDecoration(
         boxShadow: widget.painterFeature == feature
             ? [
                 const BoxShadow(
-                  color: Color.fromARGB(255, 73, 73, 73),
+                  color: Color.fromARGB(255, 39, 39, 39),
                   blurRadius: 7,
                   spreadRadius: 2,
                   offset: Offset(0.0, 5.0),
@@ -34,17 +42,17 @@ class PainterControllerState extends State<PainterController> {
         color: widget.painterFeature == feature
             ? Colors.white
             : Colors.transparent,
-        border: Border.all(color: Colors.white, width: 0.3),
+        // border: Border.all(color: Colors.white, width: 0.3),
         borderRadius: BorderRadius.circular(30),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
       margin: const EdgeInsets.symmetric(horizontal: 5),
       child: Text(
         text,
         textAlign: TextAlign.center,
         style: TextStyle(
           fontFamily: 'Poppins',
-          fontSize: 11,
+          fontSize: 12.5,
           color: widget.painterFeature == feature ? Colors.pink : Colors.white,
         ),
       ),
@@ -63,24 +71,21 @@ class PainterControllerState extends State<PainterController> {
             child: GestureDetector(
               onTap: () =>
                   widget.setPainterFeature(PainterFeature.ObjectDetection),
-              child: _container(
-                  'Object Recognition', PainterFeature.ObjectDetection),
+              child: _container('Object', PainterFeature.ObjectDetection),
             ),
           ),
           Expanded(
             child: GestureDetector(
               onTap: () =>
                   widget.setPainterFeature(PainterFeature.ColorRecognition),
-              child: _container(
-                  'Color Recognition', PainterFeature.ColorRecognition),
+              child: _container('Color', PainterFeature.ColorRecognition),
             ),
           ),
           Expanded(
             child: GestureDetector(
               onTap: () =>
                   widget.setPainterFeature(PainterFeature.TextRecognition),
-              child: _container(
-                  'Text Recognition', PainterFeature.TextRecognition),
+              child: _container('Text', PainterFeature.TextRecognition),
             ),
           ),
         ],

@@ -115,9 +115,8 @@ class _CameraViewState extends State<CameraView> {
             radius: 38,
             backgroundColor: Colors.black87,
             child: CircleAvatar(
-              radius: 34,
+              radius: 36,
               backgroundColor: Colors.white,
-              foregroundColor: Colors.black87,
             ),
           ),
         ),
@@ -132,7 +131,7 @@ class _CameraViewState extends State<CameraView> {
           radius: 38,
           backgroundColor: Colors.black87,
           child: CircleAvatar(
-            radius: 34,
+            radius: 36,
             backgroundColor: Colors.white,
             foregroundColor: Colors.black87,
             child: Icon(
@@ -209,9 +208,12 @@ class _CameraViewState extends State<CameraView> {
             right: 0,
             left: 0,
             child: Container(
-              height: MediaQuery.of(context).size.height * 0.25,
-              width: MediaQuery.of(context).size.width,
-              color: const Color.fromARGB(99, 0, 0, 0),
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height * 0.25,
+                maxHeight: MediaQuery.of(context).size.height * 0.28,
+                minWidth: MediaQuery.of(context).size.width,
+              ),
+              color: const Color.fromARGB(150, 0, 0, 0),
             ),
           ),
           if (widget.customPaint != null) widget.customPaint!,

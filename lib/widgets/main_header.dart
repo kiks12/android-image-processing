@@ -65,7 +65,7 @@ class _MainHeaderState extends State<MainHeader> {
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 21.5,
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.w600,
                   ),
