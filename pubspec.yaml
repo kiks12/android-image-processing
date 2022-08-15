@@ -41,10 +41,6 @@ dependencies:
   path_provider: ^2.0.11
   path: ^1.8.1
   tflite_flutter: ^0.9.0
-  palette_generator: ^0.3.3+1
-  image: ^3.2.0
-  matrix2d: ^1.0.2
-  image_pixels: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -72,6 +68,7 @@ flutter:
     - assets/ml/object_labeler.tflite
     - assets/ml/color_recognition_model_8.0.tflite
     - assets/ml/color_recognition_model_8.0.2.tflite
+    - assets/ml/color_recognition_model_8.0.3.tflite
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
