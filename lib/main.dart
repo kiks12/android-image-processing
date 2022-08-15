@@ -118,6 +118,10 @@ class _HomeScreenState extends State<HomeScreen> {
   /* Color Recognition Interpreter */
   Color _color = const Color.fromARGB(1, 1, 1, 1);
   tfl.Interpreter? _colorInterPreter;
+  final List<List<double>> _output = [
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+  ];
+  bool _toSpeak = false;
   /* Color Recognition Interpreter */
 
   @override
@@ -244,60 +248,31 @@ class _HomeScreenState extends State<HomeScreen> {
     onImage(inputImage);
   }
 
-  void _imageStreamCallback(CameraImage image) async {
-    if (_painterFeature == PainterFeature.ObjectDetection) {
-      _processCameraImage(image, _objectDetectionProcessImage);
-    }
-    if (_painterFeature == PainterFeature.ColorRecognition) {
-      if (localOffsetX == null && localOffsetY == null) return;
-      final rgb = [];
-      final xOffset = ((image.width * localOffsetX!)).floor();
-      final yOffset = (image.height - (image.height * localOffsetY!)).floor();
+  /* Color Recognition Functions */
+  Map<String, int> _getPixelIndices(CameraImage image) {
+    final xOffset = ((image.width * localOffsetX!)).floor();
+    final yOffset = (image.height - (image.height * localOffsetY!)).floor();
 
-      final yRowStride = image.planes[0].bytesPerRow;
-      final uvRowStride = image.planes[1].bytesPerRow;
-      final uvPixelStride = image.planes[1].bytesPerPixel!;
+    final yRowStride = image.planes[0].bytesPerRow;
+    final uvRowStride = image.planes[1].bytesPerRow;
+    final uvPixelStride = image.planes[1].bytesPerPixel!;
 
-      final uvIndexCenter = (uvPixelStride * (xOffset / 2).floor()) +
-          (uvRowStride * (yOffset / 2).floor());
-      final yIndexCenter = yRowStride * yOffset + xOffset;
+    final uvIndex = (uvPixelStride * (xOffset / 2).floor()) +
+        (uvRowStride * (yOffset / 2).floor());
+    final yIndex = yRowStride * yOffset + xOffset;
 
-      final ypc = image.planes[0].bytes[yIndexCenter];
-      final upc = image.planes[1].bytes[uvIndexCenter];
-      final vpc = image.planes[2].bytes[uvIndexCenter];
+    return {
+      'y': yIndex,
+      'uv': uvIndex,
+    };
+  }
 
-      rgb.add(yuv2rgb(ypc, upc, vpc));
+  List<double> _getPixelRGB(CameraImage image, int yIndex, int uvIndex) {
+    final y = image.planes[0].bytes[yIndex];
+    final u = image.planes[1].bytes[uvIndex];
+    final v = image.planes[2].bytes[uvIndex];
 
-      // print(rgb);
-
-      List<List<double>> output = [
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-      ];
-
-      _colorInterPreter ??= await tfl.Interpreter.fromAsset(
-          'ml/color_recognition_model_8.0.2.tflite');
-
-      _colorInterPreter!.run(rgb, output);
-
-      String prediction = '';
-      for (int i = 0; i < output.length; i++) {
-        final max = output[i]
-            .reduce((value, element) => value > element ? value : element);
-        prediction = classes[output[i].indexOf(max)];
-      }
-
-      _color = Color.fromARGB(
-        255,
-        rgb[0][0].floor(),
-        rgb[0][1].floor(),
-        rgb[0][2].floor(),
-      );
-
-      // print(output);
-      // print(prediction);
-      flutterTts.speak('The color is $prediction');
-      setState(() {});
-    }
+    return yuv2rgb(y, u, v);
   }
 
   static yuv2rgb(int y, int u, int v) {
@@ -314,6 +289,64 @@ class _HomeScreenState extends State<HomeScreen> {
       double.parse(b.toString())
     ];
   }
+
+  Future<String> _predictColor(List<List<double>> rgb) async {
+    _colorInterPreter ??= await tfl.Interpreter.fromAsset(
+      'ml/color_recognition_model.8.0.3.tflite',
+    );
+    _colorInterPreter!.run(rgb, _output);
+    String prediction = '';
+    for (int i = 0; i < _output.length; i++) {
+      final max = _output[i]
+          .reduce((value, element) => value > element ? value : element);
+      prediction = classes[_output[i].indexOf(max)];
+    }
+    return prediction;
+  }
+
+  void _setBoundingBoxColor(List<double> rgb) {
+    _color = Color.fromARGB(
+      255,
+      rgb[0].floor(),
+      rgb[1].floor(),
+      rgb[2].floor(),
+    );
+    setState(() {});
+  }
+
+  void _voiceOutPredictedColor(String color) async {
+    await flutterTts.speak('The color is: $color');
+    flutterTts.stop();
+  }
+
+  void _colorRecognitionProcess(CameraImage image) async {
+    final pixelIndices = _getPixelIndices(image);
+    final rgb = _getPixelRGB(
+      image,
+      pixelIndices['y'] as int,
+      pixelIndices['uv'] as int,
+    );
+    _setBoundingBoxColor(rgb);
+    String prediction = await _predictColor([rgb]);
+    if (_toSpeak) {
+      _voiceOutPredictedColor(prediction);
+      _toSpeak = false;
+    }
+
+    setState(() {});
+  }
+  /* Color Recognition Functions */
+
+  void _imageStreamCallback(CameraImage image) async {
+    if (_painterFeature == PainterFeature.ObjectDetection) {
+      _processCameraImage(image, _objectDetectionProcessImage);
+    }
+    if (_painterFeature == PainterFeature.ColorRecognition) {
+      if (localOffsetX == null && localOffsetY == null) return;
+      _colorRecognitionProcess(image);
+    }
+  }
+
   /* CAMERA CONTROLLER FUNCTIONS */
 
   /* TEXT TO SPEECH FUNCTIONS */
@@ -347,6 +380,7 @@ class _HomeScreenState extends State<HomeScreen> {
     h = null;
     _customPaint = null;
     _customPaint2 = null;
+    _color = Colors.transparent;
     _painterFeature = feature;
     setState(() {});
   }
@@ -367,13 +401,18 @@ class _HomeScreenState extends State<HomeScreen> {
     y = localOffsetY! - 15;
     w = localOffsetX! + 15;
     h = localOffsetY! + 15;
+    setState(() {});
   }
 
-  void _onScreenClickProxy(
+  void _onCameraPreviewClick(
       TapDownDetails details, BoxConstraints constraints, Offset offset) async {
     localOffsetX = offset.dy;
     localOffsetY = offset.dx;
-    _onScreenClick(details);
+    x = details.globalPosition.dx - 15;
+    y = details.globalPosition.dy - 15;
+    w = details.globalPosition.dx + 15;
+    h = details.globalPosition.dy + 15;
+    _toSpeak = true;
     setState(() {});
   }
 
@@ -424,7 +463,10 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: <Widget>[
           GestureDetector(
-            onTapDown: _onScreenClick,
+            onTapDown: (TapDownDetails details) {
+              if (_painterFeature != PainterFeature.ObjectDetection) return;
+              _onScreenClick(details);
+            },
             child: Stack(
               children: [
                 _isLoading
@@ -432,7 +474,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: CircularProgressIndicator(),
                       )
                     : CameraView(
-                        onScreenClick: _onScreenClickProxy,
+                        onScreenClick: _onCameraPreviewClick,
                         controller: _cameraController,
                         customPaint: _painter(),
                         customPaint2: _painterTwo(),
