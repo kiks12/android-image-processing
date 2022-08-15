@@ -20,7 +20,6 @@ class CameraView extends StatefulWidget {
     required this.painterFeature,
     required this.controller,
     required this.onScreenClick,
-    required this.cameraKey,
   }) : super(key: key);
 
   final CustomPaint? customPaint;
@@ -33,7 +32,6 @@ class CameraView extends StatefulWidget {
   final void Function(
           TapDownDetails details, BoxConstraints constraints, Offset offset)
       onScreenClick;
-  final GlobalKey cameraKey;
 
   @override
   _CameraViewState createState() => _CameraViewState();
@@ -159,6 +157,16 @@ class _CameraViewState extends State<CameraView> {
     );
   }
 
+  void _onPreviewTapDown(TapDownDetails details, BoxConstraints constraints) {
+    Offset offset = Offset(
+      details.localPosition.dx / constraints.maxWidth,
+      details.localPosition.dy / constraints.maxHeight,
+    );
+    widget.onScreenClick(details, constraints, offset);
+    widget.controller.setFocusPoint(offset);
+    widget.controller.setExposurePoint(offset);
+  }
+
   Widget _liveFeedBody() {
     if (widget.controller.value.isInitialized == false) {
       return Container();
@@ -184,20 +192,15 @@ class _CameraViewState extends State<CameraView> {
                     )
                   : CameraPreview(
                       widget.controller,
-                      key: widget.cameraKey,
-                      child: LayoutBuilder(builder: ((context, constraints) {
-                        return GestureDetector(
-                          onTapDown: (TapDownDetails details) {
-                            Offset offset = Offset(
-                              details.localPosition.dx / constraints.maxWidth,
-                              details.localPosition.dy / constraints.maxHeight,
-                            );
-                            widget.onScreenClick(details, constraints, offset);
-                            widget.controller.setFocusPoint(offset);
-                            widget.controller.setExposurePoint(offset);
-                          },
-                        );
-                      })),
+                      // key: widget.cameraKey,
+                      child: LayoutBuilder(
+                        builder: ((context, constraints) {
+                          return GestureDetector(
+                            onTapDown: (TapDownDetails details) =>
+                                _onPreviewTapDown(details, constraints),
+                          );
+                        }),
+                      ),
                     ),
             ),
           ),

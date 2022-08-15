@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:io' as io;
-import 'dart:math' as math;
 
 import 'package:android_image_processing/camera/camera_view.dart';
 import 'package:android_image_processing/painters/object_detector_painter.dart';
@@ -16,7 +15,6 @@ import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:tflite_flutter/tflite_flutter.dart' as tfl;
-import 'package:image/image.dart' as imglib;
 
 List<CameraDescription> cameras = [];
 
@@ -115,15 +113,10 @@ class _HomeScreenState extends State<HomeScreen> {
   CameraLensDirection _initialDirection = CameraLensDirection.back;
   double _zoomLevel = 0.0, _minZoomLevel = 0.0, _maxZoomLevel = 0.0;
   bool _changingCameraLens = false;
-  GlobalKey _cameraKey = GlobalKey();
   /*  */
 
-  /* Image Pixels */
-  ImageProvider<Object>? _imageProvider;
-  /* Image Pixels */
-
   /* Color Recognition Interpreter */
-  Color _color = Color.fromARGB(1, 1, 1, 1);
+  Color _color = const Color.fromARGB(1, 1, 1, 1);
   tfl.Interpreter? _colorInterPreter;
   /* Color Recognition Interpreter */
 
@@ -151,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _initializeColorInterpreter() async {
     _colorInterPreter = await tfl.Interpreter.fromAsset(
-        'ml/color_recognition_model_8.0.2.tflite');
+        'ml/color_recognition_model_8.0.3.tflite');
     setState(() {});
   }
 
@@ -249,17 +242,6 @@ class _HomeScreenState extends State<HomeScreen> {
         InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
 
     onImage(inputImage);
-  }
-
-  void _onScreenClickProxy(
-      TapDownDetails details, BoxConstraints constraints, Offset offset) async {
-    localOffsetX = offset.dy;
-    localOffsetY = offset.dx;
-    x = details.globalPosition.dx - 15;
-    y = details.globalPosition.dy - 15;
-    w = details.globalPosition.dx + 15;
-    h = details.globalPosition.dy + 15;
-    setState(() {});
   }
 
   void _imageStreamCallback(CameraImage image) async {
@@ -381,11 +363,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
     localOffsetX = details.localPosition.dx;
     localOffsetY = details.localPosition.dy;
-    x = localOffsetX! - 10;
-    y = localOffsetY! - 10;
-    w = localOffsetX! + 10;
-    h = localOffsetY! + 10;
+    x = localOffsetX! - 15;
+    y = localOffsetY! - 15;
+    w = localOffsetX! + 15;
+    h = localOffsetY! + 15;
+  }
 
+  void _onScreenClickProxy(
+      TapDownDetails details, BoxConstraints constraints, Offset offset) async {
+    localOffsetX = offset.dy;
+    localOffsetY = offset.dx;
+    _onScreenClick(details);
     setState(() {});
   }
 
@@ -405,12 +393,6 @@ class _HomeScreenState extends State<HomeScreen> {
   CustomPaint? _painter() {
     if (_painterFeature == PainterFeature.ObjectDetection) {
       _customPaint = _rectanglePainter();
-      _customPaint = null;
-    }
-
-    if (_painterFeature == PainterFeature.ColorRecognition) {
-      // _customPaint = _rectanglePainter();
-      _customPaint = null;
     }
 
     return _customPaint;
@@ -425,7 +407,6 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_painterFeature == PainterFeature.ColorRecognition) {
       _customPaint2 = null;
       _startLiveFeed(_imageStreamCallback);
-      // _stopLiveFeed();
     }
 
     if (_painterFeature == PainterFeature.TextRecognition) {
@@ -443,7 +424,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: <Widget>[
           GestureDetector(
-//            onTapDown: _onScreenClick,
+            onTapDown: _onScreenClick,
             child: Stack(
               children: [
                 _isLoading
@@ -453,7 +434,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     : CameraView(
                         onScreenClick: _onScreenClickProxy,
                         controller: _cameraController,
-                        cameraKey: _cameraKey,
                         customPaint: _painter(),
                         customPaint2: _painterTwo(),
                         painterFeature: _painterFeature,
