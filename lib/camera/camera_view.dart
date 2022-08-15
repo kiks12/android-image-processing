@@ -15,23 +15,23 @@ class CameraView extends StatefulWidget {
     required this.customPaint,
     required this.customPaint2,
     this.text,
-    // required this.onImage,
     this.onScreenModeChanged,
     required this.painterFeature,
     required this.controller,
     required this.onScreenClick,
+    required this.startLiveFeed,
   }) : super(key: key);
 
   final CustomPaint? customPaint;
   final CustomPaint? customPaint2;
   final String? text;
-  // final Function(InputImage inputImage) onImage;
   final Function(ScreenMode mode)? onScreenModeChanged;
   final PainterFeature painterFeature;
   final CameraController controller;
   final void Function(
           TapDownDetails details, BoxConstraints constraints, Offset offset)
       onScreenClick;
+  final void Function() startLiveFeed;
 
   @override
   _CameraViewState createState() => _CameraViewState();
@@ -147,7 +147,6 @@ class _CameraViewState extends State<CameraView> {
   }
 
   Widget? _floatingActionButton() {
-    if (_mode == ScreenMode.gallery) return null;
     if (cameras.length == 1) return null;
     return SizedBox(
       height: 80.0,
@@ -203,14 +202,50 @@ class _CameraViewState extends State<CameraView> {
                     ),
             ),
           ),
+          if (widget.painterFeature == PainterFeature.TextRecognition)
+            Positioned(
+              right: 0,
+              bottom: MediaQuery.of(context).size.height * 0.28,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: Container(
+                  height: 100,
+                  width: 40,
+                  color: Colors.transparent,
+                  child: Column(
+                    children: [
+                      IconButton(
+                        onPressed: _setCameraFlashMode,
+                        icon: Icon(
+                          widget.controller.value.flashMode == FlashMode.off
+                              ? Icons.flash_off
+                              : Icons.flash_on,
+                          size: 25,
+                          color: Colors.white,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: _switchLiveCamera,
+                        icon: Icon(
+                          Platform.isIOS
+                              ? Icons.flip_camera_ios_outlined
+                              : Icons.flip_camera_android_outlined,
+                          size: 25,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           Positioned(
             bottom: 0,
             right: 0,
             left: 0,
             child: Container(
               constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height * 0.25,
-                maxHeight: MediaQuery.of(context).size.height * 0.28,
+                minHeight: MediaQuery.of(context).size.height * 0.28,
                 minWidth: MediaQuery.of(context).size.width,
               ),
               color: const Color.fromARGB(150, 0, 0, 0),
@@ -241,12 +276,28 @@ class _CameraViewState extends State<CameraView> {
     );
   }
 
+  void _setCameraFlashMode() {
+    if (widget.controller.value.flashMode == FlashMode.off) {
+      widget.controller.setFlashMode(FlashMode.always);
+      setState(() {});
+      return;
+    }
+    widget.controller.setFlashMode(FlashMode.off);
+    setState(() {});
+  }
+
   Future _switchLiveCamera() async {
     setState(() => _changingCameraLens = true);
     _cameraIndex = (_cameraIndex + 1) % cameras.length;
 
-    // await _stopLiveFeed();
-    // await _startLiveFeed();
+    if (widget.painterFeature != PainterFeature.TextRecognition) {
+      await widget.controller.stopImageStream();
+      widget.startLiveFeed();
+    }
+
+    if (widget.painterFeature == PainterFeature.TextRecognition) {
+      widget.controller.resumePreview();
+    }
     setState(() => _changingCameraLens = false);
   }
 }

@@ -134,6 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
       imageFormatGroup: ImageFormatGroup.yuv420,
     );
     _cameraController.lockCaptureOrientation();
+    _cameraController.setFlashMode(FlashMode.off);
 
     _initializeTts();
     _initializeCameraController();
@@ -382,6 +383,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _customPaint2 = null;
     _color = Colors.transparent;
     _painterFeature = feature;
+    if (feature == PainterFeature.TextRecognition) {
+      _cameraController.resumePreview();
+    }
+
+    if (feature != PainterFeature.TextRecognition) {
+      _startLiveFeed(_imageStreamCallback);
+    }
     setState(() {});
   }
 
@@ -440,18 +448,24 @@ class _HomeScreenState extends State<HomeScreen> {
   CustomPaint? _painterTwo() {
     if (_painterFeature == PainterFeature.ObjectDetection) {
       _initializeDetector(DetectionMode.stream);
-      _startLiveFeed(_imageStreamCallback);
+      // if (!_cameraController.value.isStreamingImages) {
+      //   _startLiveFeed(_imageStreamCallback);
+      // }
     }
 
-    if (_painterFeature == PainterFeature.ColorRecognition) {
-      _customPaint2 = null;
-      _startLiveFeed(_imageStreamCallback);
-    }
+    // if (_painterFeature == PainterFeature.ColorRecognition) {
+    //   _customPaint2 = null;
+    //   // if (!_cameraController.value.isStreamingImages) {
+    //   //   _startLiveFeed(_imageStreamCallback);
+    //   // }
+    // }
 
-    if (_painterFeature == PainterFeature.TextRecognition) {
-      _customPaint2 = null;
-      _stopLiveFeed();
-    }
+    // if (_painterFeature == PainterFeature.TextRecognition) {
+    //   _customPaint2 = null;
+    //   if (_cameraController.value.isStreamingImages) {
+    //     _stopLiveFeed();
+    //   }
+    // }
 
     return _customPaint2;
   }
@@ -474,6 +488,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: CircularProgressIndicator(),
                       )
                     : CameraView(
+                        startLiveFeed: () =>
+                            _startLiveFeed(_imageStreamCallback),
                         onScreenClick: _onCameraPreviewClick,
                         controller: _cameraController,
                         customPaint: _painter(),
