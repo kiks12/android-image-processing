@@ -1,4 +1,3 @@
-
 import 'package:android_image_processing/main.dart';
 import 'package:android_image_processing/painters/paragraph_painter.dart';
 import 'package:flutter/material.dart';
@@ -126,6 +125,10 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
       } else {
         await flutterTts.speak('No Texts Recognized, cannot Read!');
       }
+
+      _stop();
+      _isSpeaking = false;
+      setState(() {});
     }
   }
 
@@ -144,7 +147,6 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
     _speak();
     _isSpeaking = true;
     setState(() {});
-    return;
   }
 
   @override
@@ -194,7 +196,10 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 25,
+                    vertical: 40,
+                  ),
                   child: CustomPaint(
                     painter: ParagraphPainter(text: _newVoiceText ?? ''),
                     size: Size.infinite,
@@ -204,67 +209,80 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
       ),
       bottomNavigationBar: SizedBox(
         height: MediaQuery.of(context).size.height * 0.22,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  sourceLanguage == TranslateLanguage.english
-                      ? 'English'
-                      : 'Filipino',
-                  style: const TextStyle(fontFamily: 'Poppins', fontSize: 15),
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Icon(Icons.arrow_right_alt_sharp, size: 30),
-                ),
-                Text(
-                  targetLanguage == TranslateLanguage.english
-                      ? 'English'
-                      : 'Filipino',
-                  style: const TextStyle(fontFamily: 'Poppins', fontSize: 15),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Row(
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Color.fromARGB(15, 65, 65, 65),
+                offset: Offset(0, -1),
+                blurRadius: 7,
+                spreadRadius: 10,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          primary: Colors.white,
-                          onPrimary: Colors.pink,
-                        ),
-                        onPressed: _translateText,
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 15),
-                          child: Text('Translate'),
-                        ),
-                      ),
-                    ),
+                  Text(
+                    sourceLanguage == TranslateLanguage.english
+                        ? 'English'
+                        : 'Filipino',
+                    style: const TextStyle(fontFamily: 'Poppins', fontSize: 15),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Icon(Icons.arrow_right_alt_sharp, size: 30),
+                  ),
+                  Text(
+                    targetLanguage == TranslateLanguage.english
+                        ? 'English'
+                        : 'Filipino',
+                    style: const TextStyle(fontFamily: 'Poppins', fontSize: 15),
                   ),
                 ],
               ),
-            ),
-            GestureDetector(
-              onTap: _buttonOnClick,
-              child: Material(
-                elevation: 5,
-                borderRadius: BorderRadius.circular(100),
-                child: CircleAvatar(
-                  backgroundColor: _isSpeaking ? Colors.pink : Colors.white,
-                  foregroundColor: _isSpeaking ? Colors.white : Colors.pink,
-                  radius: 39,
-                  child: Icon(!_isSpeaking ? Icons.mic : Icons.mic_off),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            primary: Colors.white,
+                            onPrimary: Colors.pink,
+                          ),
+                          onPressed: _translateText,
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 15),
+                            child: Text('Translate'),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
+              GestureDetector(
+                onTap: _buttonOnClick,
+                child: Material(
+                  elevation: 5,
+                  borderRadius: BorderRadius.circular(100),
+                  child: CircleAvatar(
+                    backgroundColor: _isSpeaking ? Colors.pink : Colors.white,
+                    foregroundColor: _isSpeaking ? Colors.white : Colors.pink,
+                    radius: 39,
+                    child: Icon(!_isSpeaking ? Icons.mic : Icons.mic_off),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       // floatingActionButton: GestureDetector(

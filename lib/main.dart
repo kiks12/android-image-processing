@@ -384,13 +384,23 @@ class _HomeScreenState extends State<HomeScreen> {
     _color = Colors.transparent;
     _painterFeature = feature;
     if (feature == PainterFeature.textRecognition) {
+      _stopLiveFeed();
       _cameraController.resumePreview();
+      if (mounted) {
+        setState(() {});
+      }
     }
 
     if (feature != PainterFeature.textRecognition) {
       _startLiveFeed(_imageStreamCallback);
+      if (mounted) {
+        setState(() {});
+      }
     }
-    setState(() {});
+
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _onScreenClick(TapDownDetails details) {

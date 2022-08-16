@@ -93,18 +93,22 @@ class _CameraViewState extends State<CameraView> {
 
   Future<void> _capturePicture() async {
     if (!widget.controller.value.isInitialized) return;
-    widget.controller.resumePreview();
-    final picture = await widget.controller.takePicture();
-    final croppedImage = await _cropImage(picture.path);
-    if (croppedImage == null) return;
-    Future.microtask(
-      () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: ((context) =>
-              DisplayTextScreen(imagePath: croppedImage.path)),
+    if (widget.controller.value.isTakingPicture) return;
+    try {
+      final picture = await widget.controller.takePicture();
+      final croppedImage = await _cropImage(picture.path);
+      if (croppedImage == null) return;
+      Future.microtask(
+        () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: ((context) =>
+                DisplayTextScreen(imagePath: croppedImage.path)),
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      print(e);
+    }
   }
 
   Widget _circleButton() {
