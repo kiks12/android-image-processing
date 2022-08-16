@@ -18,13 +18,13 @@ class MainHeader extends StatefulWidget {
 class _MainHeaderState extends State<MainHeader> {
   String _text() {
     String text = '';
-    if (widget.painterFeature == PainterFeature.ObjectDetection) {
+    if (widget.painterFeature == PainterFeature.objectDetection) {
       text = 'Object Recognition';
     }
-    if (widget.painterFeature == PainterFeature.ColorRecognition) {
+    if (widget.painterFeature == PainterFeature.colorRecognition) {
       text = 'Color Recognition';
     }
-    if (widget.painterFeature == PainterFeature.TextRecognition) {
+    if (widget.painterFeature == PainterFeature.textRecognition) {
       text = 'Text Recognition';
     }
     return text;

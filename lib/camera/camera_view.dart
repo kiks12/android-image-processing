@@ -92,6 +92,8 @@ class _CameraViewState extends State<CameraView> {
   }
 
   Future<void> _capturePicture() async {
+    if (!widget.controller.value.isInitialized) return;
+    widget.controller.resumePreview();
     final picture = await widget.controller.takePicture();
     final croppedImage = await _cropImage(picture.path);
     if (croppedImage == null) return;
@@ -106,7 +108,7 @@ class _CameraViewState extends State<CameraView> {
   }
 
   Widget _circleButton() {
-    if (widget.painterFeature == PainterFeature.TextRecognition) {
+    if (widget.painterFeature == PainterFeature.textRecognition) {
       return GestureDetector(
         onTap: _capturePicture,
         child: const CircleAvatar(
@@ -202,7 +204,7 @@ class _CameraViewState extends State<CameraView> {
                     ),
             ),
           ),
-          if (widget.painterFeature == PainterFeature.TextRecognition)
+          if (widget.painterFeature == PainterFeature.textRecognition)
             Positioned(
               right: 0,
               bottom: MediaQuery.of(context).size.height * 0.28,
@@ -251,8 +253,12 @@ class _CameraViewState extends State<CameraView> {
               color: const Color.fromARGB(150, 0, 0, 0),
             ),
           ),
-          if (widget.customPaint != null) widget.customPaint!,
-          if (widget.customPaint2 != null) widget.customPaint2!,
+          if (widget.customPaint != null &&
+              widget.painterFeature == PainterFeature.objectDetection)
+            widget.customPaint!,
+          if (widget.customPaint2 != null &&
+              widget.painterFeature == PainterFeature.objectDetection)
+            widget.customPaint2!,
           Positioned(
             bottom: 170,
             left: 50,
@@ -290,12 +296,12 @@ class _CameraViewState extends State<CameraView> {
     setState(() => _changingCameraLens = true);
     _cameraIndex = (_cameraIndex + 1) % cameras.length;
 
-    if (widget.painterFeature != PainterFeature.TextRecognition) {
+    if (widget.painterFeature != PainterFeature.textRecognition) {
       await widget.controller.stopImageStream();
       widget.startLiveFeed();
     }
 
-    if (widget.painterFeature == PainterFeature.TextRecognition) {
+    if (widget.painterFeature == PainterFeature.textRecognition) {
       widget.controller.resumePreview();
     }
     setState(() => _changingCameraLens = false);

@@ -16,12 +16,6 @@ class PainterController extends StatefulWidget {
 }
 
 class PainterControllerState extends State<PainterController> {
-  final _containersPositioning = {
-    'Object': [],
-    'Color': [],
-    'Text': [],
-  };
-
   Widget _container(String text, PainterFeature feature) {
     return AnimatedContainer(
       curve: Curves.easeOutExpo,
@@ -70,22 +64,22 @@ class PainterControllerState extends State<PainterController> {
           Expanded(
             child: GestureDetector(
               onTap: () =>
-                  widget.setPainterFeature(PainterFeature.ObjectDetection),
-              child: _container('Object', PainterFeature.ObjectDetection),
+                  widget.setPainterFeature(PainterFeature.objectDetection),
+              child: _container('Object', PainterFeature.objectDetection),
             ),
           ),
           Expanded(
             child: GestureDetector(
               onTap: () =>
-                  widget.setPainterFeature(PainterFeature.ColorRecognition),
-              child: _container('Color', PainterFeature.ColorRecognition),
+                  widget.setPainterFeature(PainterFeature.colorRecognition),
+              child: _container('Color', PainterFeature.colorRecognition),
             ),
           ),
           Expanded(
             child: GestureDetector(
               onTap: () =>
-                  widget.setPainterFeature(PainterFeature.TextRecognition),
-              child: _container('Text', PainterFeature.TextRecognition),
+                  widget.setPainterFeature(PainterFeature.textRecognition),
+              child: _container('Text', PainterFeature.textRecognition),
             ),
           ),
         ],

@@ -49,7 +49,7 @@ List<String> classes = [
 ];
 /* COLORS */
 
-enum PainterFeature { ObjectDetection, ColorRecognition, TextRecognition }
+enum PainterFeature { objectDetection, colorRecognition, textRecognition }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -89,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /* Custom Paint Variables */
   CustomPaint? _customPaint;
   CustomPaint? _customPaint2;
-  PainterFeature _painterFeature = PainterFeature.ColorRecognition;
+  PainterFeature _painterFeature = PainterFeature.colorRecognition;
   /* */
 
   /* Screen Click Coordinates Variables */
@@ -185,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .getMaxZoomLevel()
           .then((value) => _maxZoomLevel = value);
 
-      if (_painterFeature != PainterFeature.TextRecognition) {
+      if (_painterFeature != PainterFeature.textRecognition) {
         _startLiveFeed(_imageStreamCallback);
       }
 
@@ -339,10 +339,10 @@ class _HomeScreenState extends State<HomeScreen> {
   /* Color Recognition Functions */
 
   void _imageStreamCallback(CameraImage image) async {
-    if (_painterFeature == PainterFeature.ObjectDetection) {
+    if (_painterFeature == PainterFeature.objectDetection) {
       _processCameraImage(image, _objectDetectionProcessImage);
     }
-    if (_painterFeature == PainterFeature.ColorRecognition) {
+    if (_painterFeature == PainterFeature.colorRecognition) {
       if (localOffsetX == null && localOffsetY == null) return;
       _colorRecognitionProcess(image);
     }
@@ -383,11 +383,11 @@ class _HomeScreenState extends State<HomeScreen> {
     _customPaint2 = null;
     _color = Colors.transparent;
     _painterFeature = feature;
-    if (feature == PainterFeature.TextRecognition) {
+    if (feature == PainterFeature.textRecognition) {
       _cameraController.resumePreview();
     }
 
-    if (feature != PainterFeature.TextRecognition) {
+    if (feature != PainterFeature.textRecognition) {
       _startLiveFeed(_imageStreamCallback);
     }
     setState(() {});
@@ -438,7 +438,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   CustomPaint? _painter() {
-    if (_painterFeature == PainterFeature.ObjectDetection) {
+    _customPaint = null;
+    if (_painterFeature == PainterFeature.objectDetection) {
       _customPaint = _rectanglePainter();
     }
 
@@ -446,26 +447,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   CustomPaint? _painterTwo() {
-    if (_painterFeature == PainterFeature.ObjectDetection) {
+    if (_painterFeature == PainterFeature.objectDetection) {
       _initializeDetector(DetectionMode.stream);
-      // if (!_cameraController.value.isStreamingImages) {
-      //   _startLiveFeed(_imageStreamCallback);
-      // }
     }
-
-    // if (_painterFeature == PainterFeature.ColorRecognition) {
-    //   _customPaint2 = null;
-    //   // if (!_cameraController.value.isStreamingImages) {
-    //   //   _startLiveFeed(_imageStreamCallback);
-    //   // }
-    // }
-
-    // if (_painterFeature == PainterFeature.TextRecognition) {
-    //   _customPaint2 = null;
-    //   if (_cameraController.value.isStreamingImages) {
-    //     _stopLiveFeed();
-    //   }
-    // }
 
     return _customPaint2;
   }
@@ -476,18 +460,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          GestureDetector(
-            onTapDown: (TapDownDetails details) {
-              if (_painterFeature != PainterFeature.ObjectDetection) return;
-              _onScreenClick(details);
-            },
-            child: Stack(
-              children: [
-                _isLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(),
-                      )
-                    : CameraView(
+          _painterFeature == PainterFeature.objectDetection
+              ? GestureDetector(
+                  onTapDown: _onScreenClick,
+                  child: Stack(
+                    children: [
+                      CameraView(
                         startLiveFeed: () =>
                             _startLiveFeed(_imageStreamCallback),
                         onScreenClick: _onCameraPreviewClick,
@@ -496,23 +474,49 @@ class _HomeScreenState extends State<HomeScreen> {
                         customPaint2: _painterTwo(),
                         painterFeature: _painterFeature,
                       ),
-                Positioned.fromRect(
-                  rect: localOffsetX != null && localOffsetY != null
-                      ? Rect.fromPoints(Offset(x!, y!), Offset(w!, h!))
-                      : Rect.zero,
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: _color,
-                        border: Border.all(
-                          width: 1.0,
-                          color: _color,
-                          style: BorderStyle.solid,
-                        )),
+                      Positioned.fromRect(
+                        rect: localOffsetX != null && localOffsetY != null
+                            ? Rect.fromPoints(Offset(x!, y!), Offset(w!, h!))
+                            : Rect.zero,
+                        child: Container(
+                          decoration: BoxDecoration(
+                              color: _color,
+                              border: Border.all(
+                                width: 1.0,
+                                color: _color,
+                                style: BorderStyle.solid,
+                              )),
+                        ),
+                      ),
+                    ],
                   ),
+                )
+              : Stack(
+                  children: [
+                    CameraView(
+                      startLiveFeed: () => _startLiveFeed(_imageStreamCallback),
+                      onScreenClick: _onCameraPreviewClick,
+                      controller: _cameraController,
+                      customPaint: _painter(),
+                      customPaint2: _painterTwo(),
+                      painterFeature: _painterFeature,
+                    ),
+                    Positioned.fromRect(
+                      rect: localOffsetX != null && localOffsetY != null
+                          ? Rect.fromPoints(Offset(x!, y!), Offset(w!, h!))
+                          : Rect.zero,
+                      child: Container(
+                        decoration: BoxDecoration(
+                            color: _color,
+                            border: Border.all(
+                              width: 1.0,
+                              color: _color,
+                              style: BorderStyle.solid,
+                            )),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
           MainHeader(painterFeature: _painterFeature),
           PainterController(
             painterFeature: _painterFeature,
