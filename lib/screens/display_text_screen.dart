@@ -23,11 +23,11 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
   final TextRecognizer textRecognizer =
       TextRecognizer(script: TextRecognitionScript.latin);
   InputImage? _inputImage;
-  RecognizedText? _recognizedText;
   /* */
 
   /* UI Variables */
   bool _isSpeaking = false;
+  bool _isProcessing = true;
   /* */
 
   /* Transalation Variables */
@@ -44,30 +44,8 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
   @override
   void initState() {
     super.initState();
-    processImage();
-    // initTts();
+    _processImage();
   }
-
-  // Future _setAwaitOptions() async {
-  //   await flutterTts.awaitSpeakCompletion(true);
-  // }
-
-  // Future _getDefaultEngine() async {
-  //   var engine = await flutterTts.getDefaultEngine;
-  //   if (engine != null) {
-  //     // print(engine);
-  //   }
-  // }
-
-  // initTts() {
-  //   flutterTts = FlutterTts();
-
-  //   _setAwaitOptions();
-
-  //   if (isAndroid) {
-  //     _getDefaultEngine();
-  //   }
-  // }
 
   bool translateToFilipino() {
     return targetLanguage == TranslateLanguage.tagalog &&
@@ -155,7 +133,9 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
     textRecognizer.close();
   }
 
-  Future<void> processImage() async {
+  Future<void> _processImage() async {
+    _isProcessing = true;
+    setState(() {});
     _inputImage = InputImage.fromFilePath(widget.imagePath);
     final recognizedText =
         await textRecognizer.processImage(_inputImage as InputImage);
@@ -169,7 +149,6 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
     }
     setState(() {
       _newVoiceText = text;
-      _recognizedText = recognizedText;
       if (recognizedText.blocks[0].recognizedLanguages[0] == 'en') {
         sourceLanguage = TranslateLanguage.english;
         targetLanguage = TranslateLanguage.tagalog;
@@ -186,13 +165,15 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
         );
       }
     });
+    _isProcessing = false;
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: _translating
+        child: _translating || _isProcessing
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
                 child: Padding(
@@ -285,11 +266,6 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
           ),
         ),
       ),
-      // floatingActionButton: GestureDetector(
-      //   onTap: _buttonOnClick,
-      //   child:
-      // ),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }

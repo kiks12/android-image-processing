@@ -415,21 +415,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
     localOffsetX = details.localPosition.dx;
     localOffsetY = details.localPosition.dy;
-    x = localOffsetX! - 15;
-    y = localOffsetY! - 15;
-    w = localOffsetX! + 15;
-    h = localOffsetY! + 15;
+    _getClickBoundingBox(details);
     setState(() {});
+  }
+
+  void _getClickBoundingBox(TapDownDetails details) {
+    x = details.globalPosition.dx - 15;
+    y = details.globalPosition.dy - 15;
+    w = details.globalPosition.dx + 15;
+    h = details.globalPosition.dy + 15;
   }
 
   void _onCameraPreviewClick(
       TapDownDetails details, BoxConstraints constraints, Offset offset) async {
     localOffsetX = offset.dy;
     localOffsetY = offset.dx;
-    x = details.globalPosition.dx - 15;
-    y = details.globalPosition.dy - 15;
-    w = details.globalPosition.dx + 15;
-    h = details.globalPosition.dy + 15;
+    _getClickBoundingBox(details);
     _toSpeak = true;
     setState(() {});
   }
