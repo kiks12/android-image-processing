@@ -111,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late CameraController _cameraController;
   int _cameraIndex = 0;
   final CameraLensDirection _initialDirection = CameraLensDirection.back;
-  double _zoomLevel = 0.0, _minZoomLevel = 0.0, _maxZoomLevel = 0.0;
+  double zoomLevel = 0.0, minZoomLevel = 0.0, maxZoomLevel = 0.0;
   final bool _changingCameraLens = false;
   /*  */
 
@@ -119,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Color _color = const Color.fromARGB(1, 1, 1, 1);
   tfl.Interpreter? _colorInterPreter;
   final List<List<double>> _output = [
-    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
   ];
   bool _toSpeak = false;
   /* Color Recognition Interpreter */
@@ -149,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _initializeColorInterpreter() async {
     _colorInterPreter = await tfl.Interpreter.fromAsset(
-        'ml/color_recognition_model_8.0.3.tflite');
+        'ml/color_recognition_model_8.0.4.tflite');
     setState(() {});
   }
 
@@ -177,13 +177,11 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
 
       _cameraController.getMinZoomLevel().then((value) {
-        _zoomLevel = value;
-        _minZoomLevel = value;
+        zoomLevel = value;
+        minZoomLevel = value;
       });
 
-      _cameraController
-          .getMaxZoomLevel()
-          .then((value) => _maxZoomLevel = value);
+      _cameraController.getMaxZoomLevel().then((value) => maxZoomLevel = value);
 
       if (_painterFeature != PainterFeature.textRecognition) {
         _startLiveFeed(_imageStreamCallback);
@@ -199,6 +197,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _stopLiveFeed() async {
     await _cameraController.stopImageStream();
+  }
+
+  void zoomCallback(newSliderValue) {
+    // ignore: unnecessary_null_comparison
+    if (_cameraController == null) return;
+    _cameraController.setZoomLevel(newSliderValue);
+    setState(() {});
   }
 
   /* 
@@ -293,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<String> _predictColor(List<List<double>> rgb) async {
     _colorInterPreter ??= await tfl.Interpreter.fromAsset(
-      'ml/color_recognition_model.8.0.3.tflite',
+      'ml/color_recognition_model.8.0.4.tflite',
     );
     _colorInterPreter!.run(rgb, _output);
     String prediction = '';
@@ -481,23 +486,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             _startLiveFeed(_imageStreamCallback),
                         onScreenClick: _onCameraPreviewClick,
                         controller: _cameraController,
+                        minZoomLevel: minZoomLevel,
+                        maxZoomLevel: maxZoomLevel,
+                        zoomLevel: zoomLevel,
+                        zoomCallback: zoomCallback,
                         customPaint: _painter(),
                         customPaint2: _painterTwo(),
                         painterFeature: _painterFeature,
-                      ),
-                      Positioned.fromRect(
-                        rect: localOffsetX != null && localOffsetY != null
-                            ? Rect.fromPoints(Offset(x!, y!), Offset(w!, h!))
-                            : Rect.zero,
-                        child: Container(
-                          decoration: BoxDecoration(
-                              color: _color,
-                              border: Border.all(
-                                width: 1.0,
-                                color: _color,
-                                style: BorderStyle.solid,
-                              )),
-                        ),
                       ),
                     ],
                   ),
@@ -508,24 +503,38 @@ class _HomeScreenState extends State<HomeScreen> {
                       startLiveFeed: () => _startLiveFeed(_imageStreamCallback),
                       onScreenClick: _onCameraPreviewClick,
                       controller: _cameraController,
+                      minZoomLevel: minZoomLevel,
+                      maxZoomLevel: maxZoomLevel,
+                      zoomLevel: zoomLevel,
+                      zoomCallback: zoomCallback,
                       customPaint: _painter(),
                       customPaint2: _painterTwo(),
                       painterFeature: _painterFeature,
                     ),
-                    Positioned.fromRect(
-                      rect: localOffsetX != null && localOffsetY != null
-                          ? Rect.fromPoints(Offset(x!, y!), Offset(w!, h!))
-                          : Rect.zero,
-                      child: Container(
-                        decoration: BoxDecoration(
-                            color: _color,
-                            border: Border.all(
-                              width: 1.0,
+                    if (localOffsetX != null && localOffsetY != null)
+                      Positioned.fromRect(
+                        rect: localOffsetX != null && localOffsetY != null
+                            ? Rect.fromPoints(
+                                Offset(x! - 7, y! - 7),
+                                Offset(w! + 7, h! + 7),
+                              )
+                            : Rect.zero,
+                        child: Container(
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(5),
                               color: _color,
-                              style: BorderStyle.solid,
-                            )),
+                              border: Border.all(
+                                width: 2,
+                                color: Color.fromARGB(
+                                  _color.alpha,
+                                  _color.red + 20,
+                                  _color.green + 20,
+                                  _color.blue + 20,
+                                ),
+                                style: BorderStyle.solid,
+                              )),
+                        ),
                       ),
-                    ),
                   ],
                 ),
           MainHeader(painterFeature: _painterFeature),

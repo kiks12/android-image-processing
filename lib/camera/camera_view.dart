@@ -20,6 +20,10 @@ class CameraView extends StatefulWidget {
     required this.controller,
     required this.onScreenClick,
     required this.startLiveFeed,
+    required this.minZoomLevel,
+    required this.maxZoomLevel,
+    required this.zoomLevel,
+    required this.zoomCallback,
   }) : super(key: key);
 
   final CustomPaint? customPaint;
@@ -32,6 +36,10 @@ class CameraView extends StatefulWidget {
           TapDownDetails details, BoxConstraints constraints, Offset offset)
       onScreenClick;
   final void Function() startLiveFeed;
+  final double minZoomLevel;
+  final double maxZoomLevel;
+  final double zoomLevel;
+  final void Function(double newValue) zoomCallback;
 
   @override
   _CameraViewState createState() => _CameraViewState();
@@ -41,7 +49,7 @@ class _CameraViewState extends State<CameraView> {
   /* Camera Preview Variables */
   final ScreenMode _mode = ScreenMode.liveFeed;
   int _cameraIndex = 0;
-  double zoomLevel = 0.0, minZoomLevel = 0.0, maxZoomLevel = 0.0;
+  // double zoomLevel = 0.0, minZoomLevel = 0.0, maxZoomLevel = 0.0;
   bool _changingCameraLens = false;
   /*    */
 
@@ -268,17 +276,13 @@ class _CameraViewState extends State<CameraView> {
             left: 50,
             right: 50,
             child: Slider(
-              value: zoomLevel,
-              min: minZoomLevel,
-              max: maxZoomLevel,
-              onChanged: (newSliderValue) {
-                setState(() {
-                  widget.controller.setZoomLevel(newSliderValue);
-                });
-              },
-              divisions: (maxZoomLevel - 1).toInt() < 1
+              value: widget.zoomLevel,
+              min: widget.minZoomLevel,
+              max: widget.maxZoomLevel,
+              onChanged: (value) => widget.zoomCallback(value),
+              divisions: (widget.maxZoomLevel - 1).toInt() < 1
                   ? null
-                  : (maxZoomLevel - 1).toInt(),
+                  : (widget.maxZoomLevel - 1).toInt(),
             ),
           ),
         ],
