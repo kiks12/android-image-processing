@@ -121,6 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<List<double>> _output = [
     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
   ];
+  String predictedColor = '';
   bool _toSpeak = false;
   /* Color Recognition Interpreter */
 
@@ -203,6 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // ignore: unnecessary_null_comparison
     if (_cameraController == null) return;
     _cameraController.setZoomLevel(newSliderValue);
+    zoomLevel = newSliderValue;
     setState(() {});
   }
 
@@ -334,6 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     _setBoundingBoxColor(rgb);
     String prediction = await _predictColor([rgb]);
+    predictedColor = prediction;
     if (_toSpeak) {
       _voiceOutPredictedColor(prediction);
       _toSpeak = false;
@@ -387,6 +390,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _customPaint = null;
     _customPaint2 = null;
     _color = Colors.transparent;
+    predictedColor = '';
     _painterFeature = feature;
     if (feature == PainterFeature.textRecognition) {
       _stopLiveFeed();
@@ -521,18 +525,18 @@ class _HomeScreenState extends State<HomeScreen> {
                             : Rect.zero,
                         child: Container(
                           decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(5),
-                              color: _color,
-                              border: Border.all(
-                                width: 2,
-                                color: Color.fromARGB(
-                                  _color.alpha,
-                                  _color.red + 20,
-                                  _color.green + 20,
-                                  _color.blue + 20,
-                                ),
-                                style: BorderStyle.solid,
-                              )),
+                            borderRadius: BorderRadius.circular(5),
+                            color: _color,
+                            border: Border.all(
+                              width: 2,
+                              color: Color.fromARGB(
+                                _color.alpha,
+                                _color.red + 20,
+                                _color.green + 20,
+                                _color.blue + 20,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                   ],
@@ -542,6 +546,43 @@ class _HomeScreenState extends State<HomeScreen> {
             painterFeature: _painterFeature,
             setPainterFeature: _setPainterFeature,
           ),
+          if (predictedColor != '' &&
+              _painterFeature == PainterFeature.colorRecognition)
+            Positioned(
+              top: 75,
+              left: 10,
+              right: 10,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 100),
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                width: MediaQuery.of(context).size.width,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  color: _color,
+                  border: Border.all(
+                    width: 2,
+                    color: Color.fromARGB(
+                      _color.alpha,
+                      _color.red + 20,
+                      _color.green + 20,
+                      _color.blue + 20,
+                    ),
+                  ),
+                ),
+                child: Text(
+                  predictedColor,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: predictedColor != 'White' || predictedColor != 'Grey'
+                        ? Colors.white
+                        : Colors.black,
+                    fontFamily: 'Poppins',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

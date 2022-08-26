@@ -204,7 +204,6 @@ class _CameraViewState extends State<CameraView> {
                     )
                   : CameraPreview(
                       widget.controller,
-                      // key: widget.cameraKey,
                       child: LayoutBuilder(
                         builder: ((context, constraints) {
                           return GestureDetector(
