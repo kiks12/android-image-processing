@@ -228,39 +228,6 @@ class _CameraViewState extends State<CameraView> {
                   color: Colors.transparent,
                   child: Column(
                     children: [
-                      // Stack(
-                      //   children: [
-                      //     IconButton(
-                      //       onPressed: () {
-                      //         print('asdfsa');
-                      //       },
-                      //       icon: const Icon(
-                      //         Icons.slow_motion_video_outlined,
-                      //         size: 26,
-                      //         color: Colors.white,
-                      //       ),
-                      //     ),
-                      //     const Positioned(
-                      //       top: 0,
-                      //       right: 0,
-                      //       left: 22,
-                      //       bottom: 20,
-                      //       child: CircleAvatar(
-                      //         backgroundColor: Colors.white,
-                      //         foregroundColor: Colors.black,
-                      //         child: Text(
-                      //           '1x',
-                      //           textAlign: TextAlign.center,
-                      //           style: TextStyle(
-                      //             fontFamily: 'Poppins',
-                      //             fontSize: 7,
-                      //             fontWeight: FontWeight.bold,
-                      //           ),
-                      //         ),
-                      //       ),
-                      //     )
-                      //   ],
-                      // ),
                       IconButton(
                         onPressed: _setCameraFlashMode,
                         icon: Icon(
