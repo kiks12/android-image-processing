@@ -7,6 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 
 String lastObject = '';
+double lastX = 0.0;
+double lastY = 0.0;
+double lastW = 0.0;
+double lastH = 0.0;
 
 class ObjectDetectorPainter extends CustomPainter {
   const ObjectDetectorPainter(
@@ -98,16 +102,19 @@ class ObjectDetectorPainter extends CustomPainter {
         Offset(left, top),
       );
 
-      if (text.isNotEmpty) {
-        if (lastObject == text) {
-          // do nothing
-        } else {
-          await flutterTts.speak('The object is $text');
-          lastObject = text;
-        }
-      } else {
+      if (text.isEmpty) {
         await flutterTts.speak('Object is unidentifiable');
       }
+
+      if (lastObject == text ||
+          lastX == x && lastY == y && lastW == w && lastH == h) return;
+      await flutterTts.speak('The object is $text');
+
+      lastObject = text;
+      lastX = x!;
+      lastY = y!;
+      lastW = w!;
+      lastH = h!;
     }
   }
 
