@@ -137,27 +137,7 @@ class _CameraViewState extends State<CameraView> {
       );
     }
 
-    return GestureDetector(
-      onTap: _switchLiveCamera,
-      child: CircleAvatar(
-        backgroundColor: Colors.white,
-        child: CircleAvatar(
-          radius: 38,
-          backgroundColor: Colors.black87,
-          child: CircleAvatar(
-            radius: 36,
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black87,
-            child: Icon(
-              Platform.isIOS
-                  ? Icons.flip_camera_ios_outlined
-                  : Icons.flip_camera_android_outlined,
-              size: 40,
-            ),
-          ),
-        ),
-      ),
-    );
+    return GestureDetector(onTap: () {});
   }
 
   Widget? _floatingActionButton() {
@@ -222,7 +202,7 @@ class _CameraViewState extends State<CameraView> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 5),
                 child: Container(
-                  height: 100,
+                  height: 50,
                   width: 40,
                   color: Colors.transparent,
                   child: Column(
@@ -237,28 +217,23 @@ class _CameraViewState extends State<CameraView> {
                           color: Colors.white,
                         ),
                       ),
-                      IconButton(
-                        onPressed: _switchLiveCamera,
-                        icon: Icon(
-                          Platform.isIOS
-                              ? Icons.flip_camera_ios_outlined
-                              : Icons.flip_camera_android_outlined,
-                          size: 25,
-                          color: Colors.white,
-                        ),
-                      ),
                     ],
                   ),
                 ),
               ),
             ),
-          Positioned(
+          AnimatedPositioned(
             bottom: 0,
             right: 0,
             left: 0,
-            child: Container(
+            duration: const Duration(milliseconds: 200),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height * 0.28,
+                minHeight:
+                    (widget.painterFeature == PainterFeature.textRecognition)
+                        ? MediaQuery.of(context).size.height * 0.28
+                        : MediaQuery.of(context).size.height * 0.17,
                 minWidth: MediaQuery.of(context).size.width,
               ),
               color: const Color.fromARGB(150, 0, 0, 0),
@@ -270,10 +245,13 @@ class _CameraViewState extends State<CameraView> {
           if (widget.customPaint2 != null &&
               widget.painterFeature == PainterFeature.objectDetection)
             widget.customPaint2!,
-          Positioned(
-            bottom: 170,
+          AnimatedPositioned(
+            bottom: (widget.painterFeature == PainterFeature.textRecognition)
+                ? 170
+                : 80,
             left: 50,
             right: 50,
+            duration: const Duration(milliseconds: 200),
             child: Slider(
               value: widget.zoomLevel,
               min: widget.minZoomLevel,
@@ -299,18 +277,18 @@ class _CameraViewState extends State<CameraView> {
     setState(() {});
   }
 
-  Future _switchLiveCamera() async {
-    setState(() => _changingCameraLens = true);
-    _cameraIndex = (_cameraIndex + 1) % cameras.length;
+  // Future _switchLiveCamera() async {
+  //   setState(() => _changingCameraLens = true);
+  //   _cameraIndex = (_cameraIndex + 1) % cameras.length;
 
-    if (widget.painterFeature != PainterFeature.textRecognition) {
-      await widget.controller.stopImageStream();
-      widget.startLiveFeed();
-    }
+  //   if (widget.painterFeature != PainterFeature.textRecognition) {
+  //     await widget.controller.stopImageStream();
+  //     widget.startLiveFeed();
+  //   }
 
-    if (widget.painterFeature == PainterFeature.textRecognition) {
-      widget.controller.resumePreview();
-    }
-    setState(() => _changingCameraLens = false);
-  }
+  //   if (widget.painterFeature == PainterFeature.textRecognition) {
+  //     widget.controller.resumePreview();
+  //   }
+  //   setState(() => _changingCameraLens = false);
+  // }
 }

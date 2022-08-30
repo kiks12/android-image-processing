@@ -104,10 +104,14 @@ class ObjectDetectorPainter extends CustomPainter {
 
       if (text.isEmpty) {
         await flutterTts.speak('Object is unidentifiable');
+        return;
       }
 
-      if (lastObject == text ||
-          lastX == x && lastY == y && lastW == w && lastH == h) return;
+      if (lastObject == text &&
+          lastX == x &&
+          lastY == y &&
+          lastW == w &&
+          lastH == h) return;
       await flutterTts.speak('The object is $text');
 
       lastObject = text;

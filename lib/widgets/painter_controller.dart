@@ -19,7 +19,7 @@ class PainterControllerState extends State<PainterController> {
   Widget _container(String text, PainterFeature feature) {
     return AnimatedContainer(
       curve: Curves.easeOutExpo,
-      duration: const Duration(seconds: 1),
+      duration: const Duration(milliseconds: 500),
       decoration: BoxDecoration(
         boxShadow: widget.painterFeature == feature
             ? [
@@ -36,7 +36,6 @@ class PainterControllerState extends State<PainterController> {
         color: widget.painterFeature == feature
             ? Colors.white
             : Colors.transparent,
-        // border: Border.all(color: Colors.white, width: 0.3),
         borderRadius: BorderRadius.circular(30),
       ),
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
@@ -55,10 +54,12 @@ class PainterControllerState extends State<PainterController> {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      bottom: 115,
+    return AnimatedPositioned(
+      bottom:
+          (widget.painterFeature == PainterFeature.textRecognition) ? 115 : 30,
       right: 0,
       left: 0,
+      duration: const Duration(milliseconds: 200),
       child: Row(
         children: <Widget>[
           Expanded(
