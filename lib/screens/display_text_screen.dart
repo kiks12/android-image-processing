@@ -30,6 +30,7 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
   bool isSpeaking = false;
   bool isProcessing = true;
   bool showSpeechRateMenu = false;
+  bool languageRecognized = false;
   /* */
 
   /* Transalation Variables */
@@ -156,24 +157,32 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
     }
 
     newVoiceText = text;
-    if (recognizedText.blocks[0].recognizedLanguages[0] == 'en') {
+    language = recognizedText.blocks[0].recognizedLanguages[0];
+    if (language == 'en') {
       sourceLanguage = TranslateLanguage.english;
       targetLanguage = TranslateLanguage.tagalog;
       onDeviceTranslator = OnDeviceTranslator(
         sourceLanguage: sourceLanguage,
         targetLanguage: targetLanguage,
       );
+      languageRecognized = true;
     }
-    if (recognizedText.blocks[0].recognizedLanguages[0] == 'fil' ||
-        recognizedText.blocks[0].recognizedLanguages[0] == 'tl' ||
-        recognizedText.blocks[0].recognizedLanguages[0] == 'ceb') {
+
+    if (language == 'fil' || language == 'tl' || language == 'ceb') {
       sourceLanguage = TranslateLanguage.tagalog;
       targetLanguage = TranslateLanguage.english;
       onDeviceTranslator = OnDeviceTranslator(
         sourceLanguage: sourceLanguage,
         targetLanguage: targetLanguage,
       );
+      languageRecognized = true;
     }
+
+    if (language != 'en' &&
+        (language != 'fil' || language != 'tl' || language != 'ceb')) {
+      languageRecognized = false;
+    }
+
     isProcessing = false;
     setState(() {});
   }
@@ -197,45 +206,97 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            const MainHeader(
-              painterFeature: PainterFeature.textRecognition,
-              isMain: false,
-            ),
-            translating || isProcessing
-                ? const Expanded(
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
-                : Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        if (showSpeechRateMenu) {
-                          showSpeechRateMenu = false;
-                          setState(() {});
-                        }
-                      },
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 30,
-                            vertical: 40,
-                          ),
-                          child: CustomPaint(
-                            painter: ParagraphPainter(text: newVoiceText ?? ''),
-                            size: Size.infinite,
-                          ),
+      body: (isProcessing)
+          ? const SafeArea(
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            )
+          : SafeArea(
+              child: (languageRecognized)
+                  ? Column(
+                      children: [
+                        const MainHeader(
+                          painterFeature: PainterFeature.textRecognition,
+                          isMain: false,
+                        ),
+                        translating
+                            ? const Expanded(
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              )
+                            : Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    if (showSpeechRateMenu) {
+                                      showSpeechRateMenu = false;
+                                      setState(() {});
+                                    }
+                                  },
+                                  child: SingleChildScrollView(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 30,
+                                        vertical: 40,
+                                      ),
+                                      child: CustomPaint(
+                                        painter: ParagraphPainter(
+                                            text: newVoiceText ?? ''),
+                                        size: Size.infinite,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                      ],
+                    )
+                  : Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.only(
+                                bottom: 50,
+                              ),
+                              child: const Text(
+                                'Language Error',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            const Text(
+                              'The Language was not recognized by the system. Try another text.',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              child: ElevatedButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 15, horizontal: 30),
+                                  child: Text(
+                                    'Go Back',
+                                    style: TextStyle(fontFamily: 'Poppins'),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: (!isProcessing)
+            ),
+      bottomNavigationBar: (!isProcessing && languageRecognized)
           ? SizedBox(
               height: MediaQuery.of(context).size.height * 0.26,
               child: Stack(
@@ -539,7 +600,10 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
                 ],
               ),
             )
-          : Container(),
+          : SizedBox(
+              height: MediaQuery.of(context).size.height * 0,
+              child: Container(),
+            ),
     );
   }
 }
