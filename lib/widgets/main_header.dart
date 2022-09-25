@@ -7,9 +7,11 @@ class MainHeader extends StatefulWidget {
   const MainHeader({
     Key? key,
     required this.painterFeature,
+    this.isMain = true,
   }) : super(key: key);
 
   final PainterFeature painterFeature;
+  final bool isMain;
 
   @override
   State<MainHeader> createState() => _MainHeaderState();
@@ -30,8 +32,12 @@ class _MainHeaderState extends State<MainHeader> {
     return text;
   }
 
-  void _exitApp() {
+  void exitApp() {
     exit(0);
+  }
+
+  void goBackToPreviousScreen() {
+    Navigator.of(context).pop();
   }
 
   @override
@@ -52,10 +58,10 @@ class _MainHeaderState extends State<MainHeader> {
               Padding(
                 padding: const EdgeInsets.only(left: 20),
                 child: GestureDetector(
-                  onTap: _exitApp,
-                  child: const Icon(
+                  onTap: widget.isMain ? exitApp : goBackToPreviousScreen,
+                  child: Icon(
                     Icons.arrow_back_ios,
-                    color: Colors.white,
+                    color: widget.isMain ? Colors.white : Colors.black,
                   ),
                 ),
               ),
@@ -63,19 +69,19 @@ class _MainHeaderState extends State<MainHeader> {
                 child: Text(
                   _text(),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: widget.isMain ? Colors.white : Colors.black,
                     fontSize: 21.5,
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.only(right: 20),
+              Padding(
+                padding: const EdgeInsets.only(right: 20),
                 child: Icon(
                   Icons.more_vert_outlined,
-                  color: Colors.white,
+                  color: widget.isMain ? Colors.white : Colors.black,
                 ),
               ),
             ],
