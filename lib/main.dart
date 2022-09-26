@@ -424,11 +424,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     localOffsetX = details.localPosition.dx;
     localOffsetY = details.localPosition.dy;
-    _getClickBoundingBox(details);
+    getClickBoundingBox(details);
     setState(() {});
   }
 
-  void _getClickBoundingBox(TapDownDetails details) {
+  void getClickBoundingBox(TapDownDetails details) {
     x = details.globalPosition.dx - 15;
     y = details.globalPosition.dy - 15;
     w = details.globalPosition.dx + 15;
@@ -437,9 +437,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onCameraPreviewClick(
       TapDownDetails details, BoxConstraints constraints, Offset offset) async {
+    await flutterTts.stop();
     localOffsetX = offset.dy;
     localOffsetY = offset.dx;
-    _getClickBoundingBox(details);
+    getClickBoundingBox(details);
     _toSpeak = true;
     setState(() {});
   }
@@ -474,6 +475,16 @@ class _HomeScreenState extends State<HomeScreen> {
     return _customPaint2;
   }
   /* PAINTER MENU CONTROLLER FUNCTIONS */
+
+  void clear() {
+    localOffsetX = null;
+    localOffsetY = null;
+    x = null;
+    y = null;
+    w = null;
+    h = null;
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -549,7 +560,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (predictedColor != '' &&
               _painterFeature == PainterFeature.colorRecognition)
             Positioned(
-              top: 75,
+              top: 95,
               left: 10,
               right: 10,
               child: AnimatedContainer(
@@ -557,10 +568,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 5),
                 width: MediaQuery.of(context).size.width,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(10),
                   color: _color,
                   border: Border.all(
-                    width: 2,
+                    width: 1,
                     color: Color.fromARGB(
                       _color.alpha,
                       _color.red + 20,
@@ -581,6 +592,42 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
+              ),
+            ),
+          if (localOffsetX != null && localOffsetY != null)
+            AnimatedPositioned(
+              bottom: 165,
+              left: 10,
+              right: 10,
+              duration: const Duration(milliseconds: 200),
+              child: Column(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOutExpo,
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                      ),
+                      child: const Padding(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 10, horizontal: 25),
+                        child: Text(
+                          'Clear',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                      ),
+                      onPressed: clear,
+                    ),
+                  ),
+                ],
               ),
             ),
         ],
