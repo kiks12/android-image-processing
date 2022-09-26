@@ -31,6 +31,7 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
   bool isProcessing = true;
   bool showSpeechRateMenu = false;
   bool languageRecognized = false;
+  bool hasText = false;
   /* */
 
   /* Transalation Variables */
@@ -148,6 +149,15 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
     final recognizedText =
         await textRecognizer.processImage(inputImage as InputImage);
 
+    print(recognizedText.blocks.isEmpty);
+
+    if (recognizedText.blocks.isEmpty) {
+      isProcessing = false;
+      hasText = false;
+      setState(() {});
+      return;
+    }
+
     String text = '';
     for (var block in recognizedText.blocks) {
       for (var line in block.lines) {
@@ -166,6 +176,7 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
         targetLanguage: targetLanguage,
       );
       languageRecognized = true;
+      hasText = true;
     }
 
     if (language == 'fil' || language == 'tl' || language == 'ceb') {
@@ -176,6 +187,7 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
         targetLanguage: targetLanguage,
       );
       languageRecognized = true;
+      hasText = true;
     }
 
     if (language != 'en' &&
@@ -212,90 +224,137 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
                 child: CircularProgressIndicator(),
               ),
             )
-          : SafeArea(
-              child: (languageRecognized)
-                  ? Column(
-                      children: [
-                        const MainHeader(
-                          painterFeature: PainterFeature.textRecognition,
-                          isMain: false,
-                        ),
-                        translating
-                            ? const Expanded(
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              )
-                            : Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    if (showSpeechRateMenu) {
-                                      showSpeechRateMenu = false;
-                                      setState(() {});
-                                    }
-                                  },
-                                  child: SingleChildScrollView(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 30,
-                                        vertical: 40,
+          : (hasText)
+              ? SafeArea(
+                  child: (languageRecognized)
+                      ? Column(
+                          children: [
+                            const MainHeader(
+                              painterFeature: PainterFeature.textRecognition,
+                              isMain: false,
+                            ),
+                            translating
+                                ? const Expanded(
+                                    child: Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  )
+                                : Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        if (showSpeechRateMenu) {
+                                          showSpeechRateMenu = false;
+                                          setState(() {});
+                                        }
+                                      },
+                                      child: SingleChildScrollView(
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 30,
+                                            vertical: 40,
+                                          ),
+                                          child: CustomPaint(
+                                            painter: ParagraphPainter(
+                                                text: newVoiceText ?? ''),
+                                            size: Size.infinite,
+                                          ),
+                                        ),
                                       ),
-                                      child: CustomPaint(
-                                        painter: ParagraphPainter(
-                                            text: newVoiceText ?? ''),
-                                        size: Size.infinite,
+                                    ),
+                                  ),
+                          ],
+                        )
+                      : Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.only(
+                                    bottom: 50,
+                                  ),
+                                  child: const Text(
+                                    'Language Error',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                const Text(
+                                  'The Language was not recognized by the system. Try another text.',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 20),
+                                  child: ElevatedButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                    child: const Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: 15, horizontal: 30),
+                                      child: Text(
+                                        'Go Back',
+                                        style: TextStyle(fontFamily: 'Poppins'),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-                      ],
-                    )
-                  : Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.only(
-                                bottom: 50,
-                              ),
-                              child: const Text(
-                                'Language Error',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                              ],
                             ),
-                            const Text(
-                              'The Language was not recognized by the system. Try another text.',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              child: ElevatedButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 15, horizontal: 30),
-                                  child: Text(
-                                    'Go Back',
-                                    style: TextStyle(fontFamily: 'Poppins'),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
+                )
+              : Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.only(
+                            bottom: 50,
+                          ),
+                          child: const Text(
+                            'Text Error',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 36,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const Text(
+                          'Image has no recognizable text.',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 15, horizontal: 30),
+                              child: Text(
+                                'Go Back',
+                                style: TextStyle(fontFamily: 'Poppins'),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-            ),
+                  ),
+                ),
       bottomNavigationBar: (!isProcessing && languageRecognized)
           ? SizedBox(
               height: MediaQuery.of(context).size.height * 0.26,

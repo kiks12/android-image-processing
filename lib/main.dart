@@ -594,7 +594,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-          if (localOffsetX != null && localOffsetY != null)
+          if (localOffsetX != null &&
+              localOffsetY != null &&
+              _painterFeature != PainterFeature.textRecognition)
             AnimatedPositioned(
               bottom: 165,
               left: 10,
