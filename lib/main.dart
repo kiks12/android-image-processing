@@ -108,11 +108,10 @@ class _HomeScreenState extends State<HomeScreen> {
   /*  */
 
   /* Camera Controller Variables */
-  late CameraController _cameraController;
+  late CameraController cameraController;
   int _cameraIndex = 0;
   final CameraLensDirection _initialDirection = CameraLensDirection.back;
   double zoomLevel = 0.0, minZoomLevel = 0.0, maxZoomLevel = 0.0;
-  final bool _changingCameraLens = false;
   /*  */
 
   /* Color Recognition Interpreter */
@@ -129,33 +128,31 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    _cameraController = CameraController(
+    cameraController = CameraController(
       cameras[0],
       ResolutionPreset.max,
       imageFormatGroup: ImageFormatGroup.yuv420,
     );
-    _cameraController.lockCaptureOrientation();
-    _cameraController.setFlashMode(FlashMode.off);
 
-    _initializeTts();
-    _initializeCameraController();
-    _initializeColorInterpreter();
+    initializeTts();
+    initializeCameraController();
+    initializeColorInterpreter();
   }
 
   @override
   void dispose() {
     super.dispose();
-    _cameraController.dispose();
+    cameraController.dispose();
   }
 
-  void _initializeColorInterpreter() async {
+  void initializeColorInterpreter() async {
     _colorInterPreter = await tfl.Interpreter.fromAsset(
         'ml/color_recognition_model_8.0.4.tflite');
     setState(() {});
   }
 
   /* CAMERA CONTROLLER FUNCTIONS */
-  void _initializeCameraController() {
+  void initializeCameraController() {
     if (cameras.any(
       (element) =>
           element.lensDirection == _initialDirection &&
@@ -174,36 +171,37 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    _cameraController.initialize().then((value) {
+    cameraController.initialize().then((value) {
       if (!mounted) return;
 
-      _cameraController.getMinZoomLevel().then((value) {
+      cameraController.getMinZoomLevel().then((value) {
         zoomLevel = value;
         minZoomLevel = value;
       });
 
-      _cameraController.getMaxZoomLevel().then((value) => maxZoomLevel = value);
+      cameraController.getMaxZoomLevel().then((value) => maxZoomLevel = value);
+      cameraController.setFlashMode(FlashMode.off);
 
       if (_painterFeature != PainterFeature.textRecognition) {
-        _startLiveFeed(_imageStreamCallback);
+        startLiveFeed(processImageStream);
       }
 
       setState(() {});
     });
   }
 
-  void _startLiveFeed(void Function(CameraImage image) func) async {
-    _cameraController.startImageStream(func);
+  void startLiveFeed(void Function(CameraImage image) func) async {
+    cameraController.startImageStream(func);
   }
 
-  void _stopLiveFeed() async {
-    await _cameraController.stopImageStream();
+  void stopLiveFeed() async {
+    await cameraController.stopImageStream();
   }
 
   void zoomCallback(newSliderValue) {
     // ignore: unnecessary_null_comparison
-    if (_cameraController == null) return;
-    _cameraController.setZoomLevel(newSliderValue);
+    if (cameraController == null) return;
+    cameraController.setZoomLevel(newSliderValue);
     zoomLevel = newSliderValue;
     setState(() {});
   }
@@ -214,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   RETURNS : InputImage
   */
-  _processCameraImage(CameraImage image, dynamic onImage) {
+  processCameraImage(CameraImage image, dynamic onImage) {
     final WriteBuffer allBytes = WriteBuffer();
     for (final Plane plane in image.planes) {
       allBytes.putUint8List(plane.bytes);
@@ -257,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /* Color Recognition Functions */
-  Map<String, int> _getPixelIndices(CameraImage image) {
+  Map<String, int> getPixelIndices(CameraImage image) {
     final xOffset = ((image.width * localOffsetX!)).floor();
     final yOffset = (image.height - (image.height * localOffsetY!)).floor();
 
@@ -275,7 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
     };
   }
 
-  List<double> _getPixelRGB(CameraImage image, int yIndex, int uvIndex) {
+  List<double> getPixalRGB(CameraImage image, int yIndex, int uvIndex) {
     final y = image.planes[0].bytes[yIndex];
     final u = image.planes[1].bytes[uvIndex];
     final v = image.planes[2].bytes[uvIndex];
@@ -298,7 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
   }
 
-  Future<String> _predictColor(List<List<double>> rgb) async {
+  Future<String> predictColor(List<List<double>> rgb) async {
     _colorInterPreter ??= await tfl.Interpreter.fromAsset(
       'ml/color_recognition_model.8.0.4.tflite',
     );
@@ -312,7 +310,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return prediction;
   }
 
-  void _setBoundingBoxColor(List<double> rgb) {
+  void setBoundingBoxColor(List<double> rgb) {
     _color = Color.fromARGB(
       255,
       rgb[0].floor(),
@@ -322,23 +320,23 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  void _voiceOutPredictedColor(String color) async {
+  void voiceOutPredictedColor(String color) async {
     await flutterTts.speak('The color is: $color');
     flutterTts.stop();
   }
 
-  void _colorRecognitionProcess(CameraImage image) async {
-    final pixelIndices = _getPixelIndices(image);
-    final rgb = _getPixelRGB(
+  void recognizeColorFromImage(CameraImage image) async {
+    final pixelIndices = getPixelIndices(image);
+    final rgb = getPixalRGB(
       image,
       pixelIndices['y'] as int,
       pixelIndices['uv'] as int,
     );
-    _setBoundingBoxColor(rgb);
-    String prediction = await _predictColor([rgb]);
+    setBoundingBoxColor(rgb);
+    String prediction = await predictColor([rgb]);
     predictedColor = prediction;
     if (_toSpeak) {
-      _voiceOutPredictedColor(prediction);
+      voiceOutPredictedColor(prediction);
       _toSpeak = false;
     }
 
@@ -346,41 +344,41 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   /* Color Recognition Functions */
 
-  void _imageStreamCallback(CameraImage image) async {
+  void processImageStream(CameraImage image) async {
     if (_painterFeature == PainterFeature.objectDetection) {
-      _processCameraImage(image, _objectDetectionProcessImage);
+      processCameraImage(image, processObjectDetectionImage);
     }
     if (_painterFeature == PainterFeature.colorRecognition) {
       if (localOffsetX == null && localOffsetY == null) return;
-      _colorRecognitionProcess(image);
+      recognizeColorFromImage(image);
     }
   }
 
   /* CAMERA CONTROLLER FUNCTIONS */
 
   /* TEXT TO SPEECH FUNCTIONS */
-  Future _setAwaitOptions() async {
+  Future setAwaitOptions() async {
     await flutterTts.awaitSpeakCompletion(true);
   }
 
-  Future _getDefaultEngine() async {
+  Future getDefaultEngine() async {
     var engine = await flutterTts.getDefaultEngine;
     if (engine != null) {
       // print(engine);
     }
   }
 
-  void _initializeTts() {
+  void initializeTts() {
     flutterTts = FlutterTts();
-    _setAwaitOptions();
+    setAwaitOptions();
     if (isAndroid) {
-      _getDefaultEngine();
+      getDefaultEngine();
     }
   }
   /* TEXT TO SPEECH FUNCTIONS */
 
   /* PAINTER MENU CONTROLLER FUNCTIONS */
-  void _setPainterFeature(PainterFeature feature) {
+  void setPainterFeature(PainterFeature feature) {
     localOffsetX = null;
     localOffsetY = null;
     x = null;
@@ -393,15 +391,16 @@ class _HomeScreenState extends State<HomeScreen> {
     predictedColor = '';
     _painterFeature = feature;
     if (feature == PainterFeature.textRecognition) {
-      _stopLiveFeed();
-      _cameraController.resumePreview();
+      cameraController.setFlashMode(FlashMode.off);
+      stopLiveFeed();
+      cameraController.resumePreview();
       if (mounted) {
         setState(() {});
       }
     }
 
     if (feature != PainterFeature.textRecognition) {
-      _startLiveFeed(_imageStreamCallback);
+      startLiveFeed(processImageStream);
       if (mounted) {
         setState(() {});
       }
@@ -412,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _onScreenClick(TapDownDetails details) {
+  void onScreenClick(TapDownDetails details) {
     if (x != null && y != null && w != null && h != null) {
       x = null;
       y = null;
@@ -435,7 +434,7 @@ class _HomeScreenState extends State<HomeScreen> {
     h = details.globalPosition.dy + 15;
   }
 
-  void _onCameraPreviewClick(
+  void onCameraPreviewClick(
       TapDownDetails details, BoxConstraints constraints, Offset offset) async {
     await flutterTts.stop();
     localOffsetX = offset.dy;
@@ -445,7 +444,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  CustomPaint _rectanglePainter() {
+  CustomPaint rectanglePainter() {
     return CustomPaint(
       painter: RectanglePainter(
         xPoint: localOffsetX,
@@ -458,31 +457,32 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  CustomPaint? _painter() {
+  CustomPaint? painterOne() {
     _customPaint = null;
     if (_painterFeature == PainterFeature.objectDetection) {
-      _customPaint = _rectanglePainter();
+      _customPaint = rectanglePainter();
     }
 
     return _customPaint;
   }
 
-  CustomPaint? _painterTwo() {
+  CustomPaint? painterTwo() {
     if (_painterFeature == PainterFeature.objectDetection) {
-      _initializeDetector(DetectionMode.stream);
+      initializeObjectDetector(DetectionMode.stream);
     }
 
     return _customPaint2;
   }
   /* PAINTER MENU CONTROLLER FUNCTIONS */
 
-  void clear() {
+  clear() {
     localOffsetX = null;
     localOffsetY = null;
     x = null;
     y = null;
     w = null;
     h = null;
+    predictedColor = '';
     setState(() {});
   }
 
@@ -493,20 +493,19 @@ class _HomeScreenState extends State<HomeScreen> {
         children: <Widget>[
           _painterFeature == PainterFeature.objectDetection
               ? GestureDetector(
-                  onTapDown: _onScreenClick,
+                  onTapDown: onScreenClick,
                   child: Stack(
                     children: [
                       CameraView(
-                        startLiveFeed: () =>
-                            _startLiveFeed(_imageStreamCallback),
-                        onScreenClick: _onCameraPreviewClick,
-                        controller: _cameraController,
+                        startLiveFeed: () => startLiveFeed(processImageStream),
+                        onScreenClick: onCameraPreviewClick,
+                        controller: cameraController,
                         minZoomLevel: minZoomLevel,
                         maxZoomLevel: maxZoomLevel,
                         zoomLevel: zoomLevel,
                         zoomCallback: zoomCallback,
-                        customPaint: _painter(),
-                        customPaint2: _painterTwo(),
+                        customPaint: painterOne(),
+                        customPaint2: painterTwo(),
                         painterFeature: _painterFeature,
                       ),
                     ],
@@ -515,15 +514,15 @@ class _HomeScreenState extends State<HomeScreen> {
               : Stack(
                   children: [
                     CameraView(
-                      startLiveFeed: () => _startLiveFeed(_imageStreamCallback),
-                      onScreenClick: _onCameraPreviewClick,
-                      controller: _cameraController,
+                      startLiveFeed: () => startLiveFeed(processImageStream),
+                      onScreenClick: onCameraPreviewClick,
+                      controller: cameraController,
                       minZoomLevel: minZoomLevel,
                       maxZoomLevel: maxZoomLevel,
                       zoomLevel: zoomLevel,
                       zoomCallback: zoomCallback,
-                      customPaint: _painter(),
-                      customPaint2: _painterTwo(),
+                      customPaint: painterOne(),
+                      customPaint2: painterTwo(),
                       painterFeature: _painterFeature,
                     ),
                     if (localOffsetX != null && localOffsetY != null)
@@ -555,7 +554,7 @@ class _HomeScreenState extends State<HomeScreen> {
           MainHeader(painterFeature: _painterFeature),
           PainterController(
             painterFeature: _painterFeature,
-            setPainterFeature: _setPainterFeature,
+            setPainterFeature: setPainterFeature,
           ),
           if (predictedColor != '' &&
               _painterFeature == PainterFeature.colorRecognition)
@@ -616,6 +615,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
+                      onPressed: clear,
                       child: const Padding(
                         padding:
                             EdgeInsets.symmetric(vertical: 10, horizontal: 25),
@@ -626,7 +626,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
-                      onPressed: clear,
                     ),
                   ),
                 ],
@@ -638,7 +637,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /* OBJECT DETECTOR FUNCTIONS */
-  Future<void> _objectDetectionProcessImage(InputImage inputImage) async {
+  Future<void> processObjectDetectionImage(InputImage inputImage) async {
     if (!_canProcess) return;
     if (_isBusy) return;
     _isBusy = true;
@@ -661,9 +660,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _initializeDetector(DetectionMode mode) async {
+  void initializeObjectDetector(DetectionMode mode) async {
     const path = 'assets/ml/object_labeler.tflite';
-    final modelPath = await _getModel(path);
+    final modelPath = await getObjectDetectorModel(path);
     final options = LocalObjectDetectorOptions(
       mode: mode,
       modelPath: modelPath,
@@ -677,7 +676,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  Future<String> _getModel(String assetPath) async {
+  Future<String> getObjectDetectorModel(String assetPath) async {
     if (io.Platform.isAndroid) {
       return 'flutter_assets/$assetPath';
     }

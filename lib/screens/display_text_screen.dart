@@ -100,7 +100,7 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
     targetLanguage = temp;
   }
 
-  Future _speak() async {
+  Future speak() async {
     await flutterTts.setVolume(volume);
     await flutterTts.setSpeechRate(speechRate);
     await flutterTts.setPitch(pitch);
@@ -112,25 +112,25 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
         await flutterTts.speak('No Texts Recognized, cannot Read!');
       }
 
-      _stop();
+      stop();
       isSpeaking = false;
       setState(() {});
     }
   }
 
-  Future _stop() async {
+  Future stop() async {
     await flutterTts.stop();
   }
 
-  void _buttonOnClick() {
+  void buttonOnClick() {
     if (isSpeaking) {
-      _stop();
+      stop();
       isSpeaking = false;
       setState(() {});
       return;
     }
 
-    _speak();
+    speak();
     isSpeaking = true;
     setState(() {});
   }
@@ -138,7 +138,7 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
   @override
   void dispose() {
     super.dispose();
-    _stop();
+    stop();
     textRecognizer.close();
   }
 
@@ -148,8 +148,6 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
     inputImage = InputImage.fromFilePath(widget.imagePath);
     final recognizedText =
         await textRecognizer.processImage(inputImage as InputImage);
-
-    print(recognizedText.blocks.isEmpty);
 
     if (recognizedText.blocks.isEmpty) {
       isProcessing = false;
@@ -511,7 +509,7 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: _buttonOnClick,
+                          onTap: buttonOnClick,
                           child: Material(
                             elevation: 5,
                             borderRadius: BorderRadius.circular(100),
