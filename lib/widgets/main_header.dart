@@ -18,7 +18,7 @@ class MainHeader extends StatefulWidget {
 }
 
 class _MainHeaderState extends State<MainHeader> {
-  String _text() {
+  String headerText() {
     String text = '';
     if (widget.painterFeature == PainterFeature.objectDetection) {
       text = 'Object Recognition';
@@ -67,7 +67,7 @@ class _MainHeaderState extends State<MainHeader> {
               ),
               Expanded(
                 child: Text(
-                  _text(),
+                  headerText(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: widget.isMain ? Colors.white : Colors.black,

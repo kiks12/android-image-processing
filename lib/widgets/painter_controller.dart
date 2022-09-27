@@ -16,7 +16,7 @@ class PainterController extends StatefulWidget {
 }
 
 class PainterControllerState extends State<PainterController> {
-  Widget _container(String text, PainterFeature feature) {
+  Widget container(String text, PainterFeature feature) {
     return AnimatedContainer(
       curve: Curves.easeOutExpo,
       duration: const Duration(milliseconds: 500),
@@ -66,21 +66,21 @@ class PainterControllerState extends State<PainterController> {
             child: GestureDetector(
               onTap: () =>
                   widget.setPainterFeature(PainterFeature.objectDetection),
-              child: _container('Object', PainterFeature.objectDetection),
+              child: container('Object', PainterFeature.objectDetection),
             ),
           ),
           Expanded(
             child: GestureDetector(
               onTap: () =>
                   widget.setPainterFeature(PainterFeature.colorRecognition),
-              child: _container('Color', PainterFeature.colorRecognition),
+              child: container('Color', PainterFeature.colorRecognition),
             ),
           ),
           Expanded(
             child: GestureDetector(
               onTap: () =>
                   widget.setPainterFeature(PainterFeature.textRecognition),
-              child: _container('Text', PainterFeature.textRecognition),
+              child: container('Text', PainterFeature.textRecognition),
             ),
           ),
         ],
