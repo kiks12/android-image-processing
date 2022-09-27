@@ -147,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   initializeColorInterpreter() async {
     _colorInterPreter = await tfl.Interpreter.fromAsset(
-        'ml/color_recognition_model_8.0.4.tflite');
+        'ml/color_recognition_model_8.0.5.tflite');
     setState(() {});
   }
 
@@ -298,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<String> identifyColor(List<List<double>> rgb) async {
     _colorInterPreter ??= await tfl.Interpreter.fromAsset(
-      'ml/color_recognition_model.8.0.4.tflite',
+      'ml/color_recognition_model.8.0.5.tflite',
     );
     _colorInterPreter!.run(rgb, _output);
     String prediction = '';
