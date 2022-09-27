@@ -4,6 +4,8 @@ This is an Android Based Application capable of recognizing general objects in t
 
 The android app is powered by Flutter, Google’s Cross Platform Mobile Development Framework. In addition, the machine learning models were created using Python and Tensorflow library. 
 
+<br />
+
 ![Screenshot_1664265344.png](Android%20Based%20Image%20Processing%20b02367bae2a745219eeea83e2519e788/Screenshot_1664265344.png)
 
 ![Screenshot_1664265353.png](Android%20Based%20Image%20Processing%20b02367bae2a745219eeea83e2519e788/Screenshot_1664265353.png)
@@ -16,9 +18,17 @@ The android app is powered by Flutter, Google’s Cross Platform Mobile Developm
 
 ![Screenshot_1664265382.png](Android%20Based%20Image%20Processing%20b02367bae2a745219eeea83e2519e788/Screenshot_1664265382.png)
 
+<br />
+<br />
+<br />
+<br />
+
 # lib (Main Directory of Code Base)
 
 All of the necessary code inclusions are found in lib directory.
+
+<br />
+<br />
 
 ### Main (main.dart)
 
@@ -138,9 +148,17 @@ getObjectDetectorModelPath(String assetPath)
 
 - This will return the absolute file path of the asset file.
 
+<br />
+<br />
+<br />
+<br />
+
 # widgets (lib/widgets)
 
 The widgets directory includes all widgets used in the entirety of the application. 
+
+<br />
+<br />
 
 ### Camera View (camera_view.dart)
 
@@ -172,6 +190,9 @@ Widget liveFeedBody()
 
 - This is the main body of the widget, this displays a preview of what the camera is seeing at the moment.
 
+<br />
+<br />
+
 ### Main Header (main_header.dart)
 
 This widget is used in the main screen (main.dart), it is the header part of the screen. It changes the headerText based on the current painterFeature.
@@ -190,6 +211,9 @@ goBackToPreviousScreen()
 
 - Used to programmatically go back to the previous screen
 
+<br />
+<br />
+
 ### Painter Controller (painter_controller.dart)
 
 This widget is found in the main screen (main.dart), it shows the object, color, and text buttons.
@@ -200,15 +224,25 @@ Widget container(String text, PainterFeature feature)
 
 - This will create one rounded button together with its functionality (setPainterFeature).
 
+<br />
+<br />
+<br />
+<br />
+
 # screens (lib/screens)
 
 The screens directory includes all screens except the main screen, where the app revolves around. 
+
+<br />
+<br />
 
 ### Display Text Screen (display_text_screen.dart)
 
 This is the screen showed in app when the user uses Text Recognition and takes a photo with the feature. To elaborate, when the user is done cropping the taken image, this is the screen that will popup.
 
 This includes features like; voice out, translation from English-Filipino, vice versa, and speech rate (Voice Out Speed).
+
+<br />
 
 UI Variables:
 
@@ -231,6 +265,8 @@ languageRecognized (boolean)
 hasText (boolean)
 
 - Similar to the previous, this is used to determine if the text error components are to be shown in screen.
+
+<br />
 
 Methods:
 
@@ -270,9 +306,17 @@ setSpeechRateState(double newRate)
 
 - This function changes the voice out speed of the application, it has 6 corresponding speeds the user can choose from; 0.25, 0.5, 0.75, 1.0, 1.25, 1.50 and 1.75.
 
+<br />
+<br />
+<br />
+<br />
+
 # painters (lib/painters)
 
 This directory includes all the canvas painter of the application. These Canvas painters draw on top of the Camera View (Camera Preview) to show the color and/or bounding box for recognized objects. Also, one painter handles the creation of paragraphs and text for the Text Recognition. 
+
+<br />
+<br />
 
 ### Coordinates Translator (coordinates_translator.dart)
 
@@ -288,17 +332,31 @@ double translateY()
 
 - This will translate the offset y based on the absolute size of the image and its rotation.
 
+<br />
+<br />
+
 ### Object Detector (object_detector_painter.dart)
 
 This is the painter used when the active painterFeature is ObjectRecognition. This is used to create the bounding box on the recognized objects in the image stream.
+
+<br />
+<br />
 
 ### Paragraph Painter (paragraph_painter.dart)
 
 This is the painter used in creating the paragraphs in display_text_screen. This turns strings to a paragraph in a canvas.
 
+<br />
+<br />
+
 ### Rectangle Painter (rectangle_painter.dart)
 
 This painter is used when clicking on the screen while on ObjectRecognition mode. This displays the offset rectangle where the user points to.
+
+<br />
+<br />
+<br />
+<br />
 
 # DO NOT TOUCH
 
@@ -309,17 +367,22 @@ This painter is used when clicking on the screen while on ObjectRecognition mode
 - .flutter-plugins-dependencies
 - assets/
 
+<br />
+<br />
+
 # Run Application on Debug Mode
 
 ```dart
 flutter run
 ```
+<br />
 
 # Build APK
 
 ```dart
 flutter build apk
 ```
+<br />
 
 # Install APK to Android Device
 
