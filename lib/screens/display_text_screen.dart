@@ -193,6 +193,7 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
     if (language != 'en' &&
         (language != 'fil' || language != 'tl' || language != 'ceb')) {
       languageRecognized = false;
+      hasText = true;
     }
 
     isProcessing = false;
