@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:io' as io;
 
-import 'package:android_image_processing/camera/camera_view.dart';
+import 'package:android_image_processing/widgets/camera_view.dart';
 import 'package:android_image_processing/painters/object_detector_painter.dart';
 import 'package:android_image_processing/painters/rectangle_painter.dart';
 import 'package:android_image_processing/widgets/main_header.dart';
@@ -145,14 +145,14 @@ class _HomeScreenState extends State<HomeScreen> {
     cameraController.dispose();
   }
 
-  void initializeColorInterpreter() async {
+  initializeColorInterpreter() async {
     _colorInterPreter = await tfl.Interpreter.fromAsset(
         'ml/color_recognition_model_8.0.4.tflite');
     setState(() {});
   }
 
   /* CAMERA CONTROLLER FUNCTIONS */
-  void initializeCameraController() {
+  initializeCameraController() {
     if (cameras.any(
       (element) =>
           element.lensDirection == _initialDirection &&
@@ -190,15 +190,15 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void startLiveFeed(void Function(CameraImage image) func) async {
+  startLiveFeed(void Function(CameraImage image) func) async {
     cameraController.startImageStream(func);
   }
 
-  void stopLiveFeed() async {
+  stopLiveFeed() async {
     await cameraController.stopImageStream();
   }
 
-  void zoomCallback(newSliderValue) {
+  zoomCallback(double newSliderValue) {
     // ignore: unnecessary_null_comparison
     if (cameraController == null) return;
     cameraController.setZoomLevel(newSliderValue);
@@ -273,15 +273,15 @@ class _HomeScreenState extends State<HomeScreen> {
     };
   }
 
-  List<double> getPixalRGB(CameraImage image, int yIndex, int uvIndex) {
+  List<double> getPixelRGB(CameraImage image, int yIndex, int uvIndex) {
     final y = image.planes[0].bytes[yIndex];
     final u = image.planes[1].bytes[uvIndex];
     final v = image.planes[2].bytes[uvIndex];
 
-    return yuv2rgb(y, u, v);
+    return yuv420ToRGB(y, u, v);
   }
 
-  static yuv2rgb(int y, int u, int v) {
+  static yuv420ToRGB(int y, int u, int v) {
     // Convert yuv pixel to rgb
     int r = (y + v * 1436 / 1024 - 179).round().clamp(0, 255);
     int g = (y - u * 46549 / 131072 + 44 - v * 93604 / 131072 + 91)
@@ -296,7 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
   }
 
-  Future<String> predictColor(List<List<double>> rgb) async {
+  Future<String> identifyColor(List<List<double>> rgb) async {
     _colorInterPreter ??= await tfl.Interpreter.fromAsset(
       'ml/color_recognition_model.8.0.4.tflite',
     );
@@ -310,7 +310,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return prediction;
   }
 
-  void setBoundingBoxColor(List<double> rgb) {
+  setBoundingBoxColor(List<double> rgb) {
     _color = Color.fromARGB(
       255,
       rgb[0].floor(),
@@ -320,23 +320,23 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  void voiceOutPredictedColor(String color) async {
+  voiceOutIdentifiedColor(String color) async {
     await flutterTts.speak('The color is: $color');
     flutterTts.stop();
   }
 
-  void recognizeColorFromImage(CameraImage image) async {
+  identifyColorFromImage(CameraImage image) async {
     final pixelIndices = getPixelIndices(image);
-    final rgb = getPixalRGB(
+    final rgb = getPixelRGB(
       image,
       pixelIndices['y'] as int,
       pixelIndices['uv'] as int,
     );
     setBoundingBoxColor(rgb);
-    String prediction = await predictColor([rgb]);
+    String prediction = await identifyColor([rgb]);
     predictedColor = prediction;
     if (_toSpeak) {
-      voiceOutPredictedColor(prediction);
+      voiceOutIdentifiedColor(prediction);
       _toSpeak = false;
     }
 
@@ -350,7 +350,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     if (_painterFeature == PainterFeature.colorRecognition) {
       if (localOffsetX == null && localOffsetY == null) return;
-      recognizeColorFromImage(image);
+      identifyColorFromImage(image);
     }
   }
 
@@ -368,7 +368,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void initializeTts() {
+  initializeTts() {
     flutterTts = FlutterTts();
     setAwaitOptions();
     if (isAndroid) {
@@ -378,7 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /* TEXT TO SPEECH FUNCTIONS */
 
   /* PAINTER MENU CONTROLLER FUNCTIONS */
-  void setPainterFeature(PainterFeature feature) {
+  setPainterFeature(PainterFeature feature) {
     localOffsetX = null;
     localOffsetY = null;
     x = null;
@@ -411,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void onScreenClick(TapDownDetails details) {
+  onScreenClick(TapDownDetails details) {
     if (x != null && y != null && w != null && h != null) {
       x = null;
       y = null;
@@ -427,14 +427,14 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  void getClickBoundingBox(TapDownDetails details) {
+  getClickBoundingBox(TapDownDetails details) {
     x = details.globalPosition.dx - 15;
     y = details.globalPosition.dy - 15;
     w = details.globalPosition.dx + 15;
     h = details.globalPosition.dy + 15;
   }
 
-  void onCameraPreviewClick(
+  onCameraPreviewClick(
       TapDownDetails details, BoxConstraints constraints, Offset offset) async {
     await flutterTts.stop();
     localOffsetX = offset.dy;
@@ -660,9 +660,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void initializeObjectDetector(DetectionMode mode) async {
+  initializeObjectDetector(DetectionMode mode) async {
     const path = 'assets/ml/object_labeler.tflite';
-    final modelPath = await getObjectDetectorModel(path);
+    final modelPath = await getObjectDetectorModelPath(path);
     final options = LocalObjectDetectorOptions(
       mode: mode,
       modelPath: modelPath,
@@ -676,7 +676,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  Future<String> getObjectDetectorModel(String assetPath) async {
+  Future<String> getObjectDetectorModelPath(String assetPath) async {
     if (io.Platform.isAndroid) {
       return 'flutter_assets/$assetPath';
     }
