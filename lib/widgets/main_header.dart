@@ -50,7 +50,9 @@ class _MainHeaderState extends State<MainHeader> {
         child: Container(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height * 0.06,
-          color: Colors.transparent,
+          color: (widget.isMain)
+              ? Colors.transparent
+              : const Color.fromARGB(255, 249, 249, 249),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,

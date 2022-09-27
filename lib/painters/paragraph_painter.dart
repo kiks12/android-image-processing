@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class ParagraphPainter extends CustomPainter {
@@ -21,9 +20,9 @@ class ParagraphPainter extends CustomPainter {
     );
     textPainter.layout(
       minWidth: 0,
-      maxWidth: size.width,
+      maxWidth: size.width - 50,
     );
-    const offset = Offset.zero;
+    const offset = Offset(25, 0);
     textPainter.paint(canvas, offset);
 
     canvas.save();

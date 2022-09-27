@@ -378,7 +378,8 @@ class _HomeScreenState extends State<HomeScreen> {
   /* TEXT TO SPEECH FUNCTIONS */
 
   /* PAINTER MENU CONTROLLER FUNCTIONS */
-  setPainterFeature(PainterFeature feature) {
+  setPainterFeature(PainterFeature feature) async {
+    await flutterTts.stop();
     localOffsetX = null;
     localOffsetY = null;
     x = null;
@@ -475,7 +476,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   /* PAINTER MENU CONTROLLER FUNCTIONS */
 
-  clear() {
+  clear() async {
+    await flutterTts.stop();
     localOffsetX = null;
     localOffsetY = null;
     x = null;

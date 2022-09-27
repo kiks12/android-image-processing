@@ -226,41 +226,42 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
           : (hasText)
               ? SafeArea(
                   child: (languageRecognized)
-                      ? Column(
+                      ? Stack(
                           children: [
-                            const MainHeader(
-                              painterFeature: PainterFeature.textRecognition,
-                              isMain: false,
-                            ),
                             translating
-                                ? const Expanded(
-                                    child: Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
+                                ? const Center(
+                                    child: CircularProgressIndicator(),
                                   )
-                                : Expanded(
-                                    child: GestureDetector(
+                                : LayoutBuilder(
+                                    builder: (context, constraints) {
+                                    return GestureDetector(
                                       onTap: () {
                                         if (showSpeechRateMenu) {
                                           showSpeechRateMenu = false;
                                           setState(() {});
                                         }
                                       },
-                                      child: SingleChildScrollView(
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 30,
-                                            vertical: 40,
-                                          ),
+                                      child: Container(
+                                        padding: const EdgeInsets.only(top: 60),
+                                        height: constraints.maxHeight,
+                                        child: SingleChildScrollView(
                                           child: CustomPaint(
                                             painter: ParagraphPainter(
-                                                text: newVoiceText ?? ''),
-                                            size: Size.infinite,
+                                              text: newVoiceText ?? '',
+                                            ),
+                                            size: Size.fromHeight(
+                                              double.parse(newVoiceText!.length
+                                                  .toString()),
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ),
+                                    );
+                                  }),
+                            const MainHeader(
+                              painterFeature: PainterFeature.textRecognition,
+                              isMain: false,
+                            ),
                           ],
                         )
                       : Center(
@@ -310,47 +311,49 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
                           ),
                         ),
                 )
-              : Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(
-                            bottom: 50,
-                          ),
-                          child: const Text(
-                            'Text Error',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 36,
-                              fontWeight: FontWeight.w600,
+              : SafeArea(
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(
+                              bottom: 50,
                             ),
-                          ),
-                        ),
-                        const Text(
-                          'Image has no recognizable text.',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          child: ElevatedButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 15, horizontal: 30),
-                              child: Text(
-                                'Go Back',
-                                style: TextStyle(fontFamily: 'Poppins'),
+                            child: const Text(
+                              'Text Error',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 36,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                          const Text(
+                            'Image has no recognizable text.',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            child: ElevatedButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Padding(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 15, horizontal: 30),
+                                child: Text(
+                                  'Go Back',
+                                  style: TextStyle(fontFamily: 'Poppins'),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
