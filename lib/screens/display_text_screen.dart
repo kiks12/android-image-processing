@@ -34,7 +34,7 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
   bool hasText = false;
   /* */
 
-  /* Transalation Variables */
+  /* Translation Variables */
   bool translating = false;
   late TranslateLanguage sourceLanguage;
   late TranslateLanguage targetLanguage;
@@ -55,12 +55,12 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
     processImage();
   }
 
-  bool translateToFilipino() {
+  bool shouldTranslateToFilipino() {
     return targetLanguage == TranslateLanguage.tagalog &&
         _cache.keys.contains('Filipino');
   }
 
-  bool translateToEnglish() {
+  bool shouldTranslateToEnglish() {
     return targetLanguage == TranslateLanguage.english &&
         _cache.keys.contains('English');
   }
@@ -68,7 +68,7 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
   Future translateText() async {
     setState(() => translating = true);
 
-    if (translateToEnglish()) {
+    if (shouldTranslateToEnglish()) {
       newVoiceText = _cache['English'];
       translating = false;
       switchSourceAndTargetLanguage();
@@ -76,7 +76,7 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
       return;
     }
 
-    if (translateToFilipino()) {
+    if (shouldTranslateToFilipino()) {
       newVoiceText = _cache['Filipino'];
       translating = false;
       switchSourceAndTargetLanguage();
@@ -122,7 +122,7 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
     await flutterTts.stop();
   }
 
-  void buttonOnClick() {
+  void microphoneClick() {
     if (isSpeaking) {
       stop();
       isSpeaking = false;
@@ -509,7 +509,7 @@ class _DisplayTextScreenState extends State<DisplayTextScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: buttonOnClick,
+                          onTap: microphoneClick,
                           child: Material(
                             elevation: 5,
                             borderRadius: BorderRadius.circular(100),
