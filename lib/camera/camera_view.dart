@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:android_image_processing/screens/display_text_screen.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -47,11 +46,6 @@ class CameraView extends StatefulWidget {
 
 class _CameraViewState extends State<CameraView> {
   /* Camera Preview Variables */
-  final ScreenMode _mode = ScreenMode.liveFeed;
-  int _cameraIndex = 0;
-  // double zoomLevel = 0.0, minZoomLevel = 0.0, maxZoomLevel = 0.0;
-  bool _changingCameraLens = false;
-  /*    */
 
   @override
   void initState() {
@@ -68,17 +62,17 @@ class _CameraViewState extends State<CameraView> {
     return Scaffold(
       body: Stack(
         children: [
-          _liveFeedBody(),
+          liveFeedBody(),
           if (widget.customPaint != null) widget.customPaint!,
         ],
       ),
-      floatingActionButton: _floatingActionButton(),
+      floatingActionButton: floatingActionButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
   /* IMAGE CROPPER */
-  Future<CroppedFile?> _cropImage(String path) async {
+  Future<CroppedFile?> cropImage(String path) async {
     return await ImageCropper().cropImage(
       sourcePath: path,
       compressFormat: ImageCompressFormat.jpg,
@@ -99,12 +93,12 @@ class _CameraViewState extends State<CameraView> {
     );
   }
 
-  Future<void> _capturePicture() async {
+  Future<void> capturePicture() async {
     if (!widget.controller.value.isInitialized) return;
     if (widget.controller.value.isTakingPicture) return;
     try {
       final picture = await widget.controller.takePicture();
-      final croppedImage = await _cropImage(picture.path);
+      final croppedImage = await cropImage(picture.path);
       if (croppedImage == null) return;
       Future.microtask(
         () => Navigator.of(context).push(
@@ -119,10 +113,10 @@ class _CameraViewState extends State<CameraView> {
     }
   }
 
-  Widget _circleButton() {
+  Widget circleButton() {
     if (widget.painterFeature == PainterFeature.textRecognition) {
       return GestureDetector(
-        onTap: _capturePicture,
+        onTap: capturePicture,
         child: const CircleAvatar(
           backgroundColor: Colors.white,
           child: CircleAvatar(
@@ -140,16 +134,16 @@ class _CameraViewState extends State<CameraView> {
     return GestureDetector(onTap: () {});
   }
 
-  Widget? _floatingActionButton() {
+  Widget? floatingActionButton() {
     if (cameras.length == 1) return null;
     return SizedBox(
       height: 80.0,
       width: 80.0,
-      child: _circleButton(),
+      child: circleButton(),
     );
   }
 
-  void _onPreviewTapDown(TapDownDetails details, BoxConstraints constraints) {
+  onPreviewTapDown(TapDownDetails details, BoxConstraints constraints) {
     Offset offset = Offset(
       details.localPosition.dx / constraints.maxWidth,
       details.localPosition.dy / constraints.maxHeight,
@@ -159,7 +153,23 @@ class _CameraViewState extends State<CameraView> {
     widget.controller.setExposurePoint(offset);
   }
 
-  Widget _liveFeedBody() {
+  setCameraFlashMode() {
+    // ignore: unnecessary_null_comparison
+    if (widget.controller == null) return;
+
+    if (widget.controller.value.flashMode == FlashMode.off) {
+      widget.controller
+          .setFlashMode(FlashMode.always)
+          .then((value) => setState(() {}));
+    }
+    if (widget.controller.value.flashMode == FlashMode.always) {
+      widget.controller
+          .setFlashMode(FlashMode.off)
+          .then((value) => setState(() {}));
+    }
+  }
+
+  Widget liveFeedBody() {
     if (widget.controller.value.isInitialized == false) {
       return Container();
     }
@@ -178,50 +188,19 @@ class _CameraViewState extends State<CameraView> {
             scale: scale,
             alignment: Alignment.center,
             child: Center(
-              child: _changingCameraLens
-                  ? const Center(
-                      child: Text('Changing camera lens'),
-                    )
-                  : CameraPreview(
-                      widget.controller,
-                      child: LayoutBuilder(
-                        builder: ((context, constraints) {
-                          return GestureDetector(
-                            onTapDown: (TapDownDetails details) =>
-                                _onPreviewTapDown(details, constraints),
-                          );
-                        }),
-                      ),
-                    ),
-            ),
-          ),
-          if (widget.painterFeature == PainterFeature.textRecognition)
-            Positioned(
-              right: 0,
-              bottom: MediaQuery.of(context).size.height * 0.28,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 5),
-                child: Container(
-                  height: 50,
-                  width: 40,
-                  color: Colors.transparent,
-                  child: Column(
-                    children: [
-                      IconButton(
-                        onPressed: _setCameraFlashMode,
-                        icon: Icon(
-                          widget.controller.value.flashMode == FlashMode.off
-                              ? Icons.flash_off
-                              : Icons.flash_on,
-                          size: 25,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
+              child: CameraPreview(
+                widget.controller,
+                child: LayoutBuilder(
+                  builder: ((context, constraints) {
+                    return GestureDetector(
+                      onTapDown: (TapDownDetails details) =>
+                          onPreviewTapDown(details, constraints),
+                    );
+                  }),
                 ),
               ),
             ),
+          ),
           AnimatedPositioned(
             bottom: 0,
             right: 0,
@@ -262,19 +241,36 @@ class _CameraViewState extends State<CameraView> {
                   : (widget.maxZoomLevel - 1).toInt(),
             ),
           ),
+          if (widget.painterFeature == PainterFeature.textRecognition)
+            Positioned(
+              right: 0,
+              bottom: MediaQuery.of(context).size.height * 0.28,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: Container(
+                  height: 50,
+                  width: 40,
+                  color: Colors.transparent,
+                  child: Column(
+                    children: [
+                      IconButton(
+                        onPressed: setCameraFlashMode,
+                        icon: Icon(
+                          widget.controller.value.flashMode == FlashMode.off
+                              ? Icons.flash_off
+                              : Icons.flash_on,
+                          size: 25,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
-  }
-
-  void _setCameraFlashMode() {
-    if (widget.controller.value.flashMode == FlashMode.off) {
-      widget.controller.setFlashMode(FlashMode.always);
-      setState(() {});
-      return;
-    }
-    widget.controller.setFlashMode(FlashMode.off);
-    setState(() {});
   }
 
   // Future _switchLiveCamera() async {
