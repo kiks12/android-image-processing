@@ -380,6 +380,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /* PAINTER MENU CONTROLLER FUNCTIONS */
   setPainterFeature(PainterFeature feature) async {
     await flutterTts.stop();
+    await flutterTts.setSpeechRate(0.5);
     localOffsetX = null;
     localOffsetY = null;
     x = null;
