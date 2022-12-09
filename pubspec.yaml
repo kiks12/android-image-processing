@@ -1,4 +1,4 @@
-name: EyeTechnology
+name: android_image_processing 
 description: A new Flutter project.
 
 # The following line prevents the package from being accidentally published to
@@ -44,6 +44,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.11.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -51,6 +52,12 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
+
+flutter_icons:
+  image_path: "assets/icon.png"
+  android: "launcher_icon"
+  min_sdk_android: 21
+  
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -67,6 +74,7 @@ flutter:
     - assets/ml/object_labeler.tflite
     - assets/ml/color_recognition_model_8.0.4.tflite
     - assets/ml/color_recognition_model_8.0.5.tflite
+    - assets/icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
