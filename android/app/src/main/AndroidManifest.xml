@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.EyeTechnology">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.android_image_processing">
    <application android:label="EyeTechnology" android:name="${applicationName}" android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
